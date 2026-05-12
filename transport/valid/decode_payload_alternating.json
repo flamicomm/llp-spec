@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_alternating",
+  "type": "decode",
+  "description": "Parse valid frame — Alternating 0xAA / 0x00 pattern",
+  "input": {
+    "frame_hex": "AA55060000AA0000AA0000AA00D651"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "00AA00AA00AA"
+  }
+}

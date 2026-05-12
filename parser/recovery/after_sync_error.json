@@ -1,0 +1,24 @@
+{
+  "spec_version": "3.0.0",
+  "name": "after_sync_error",
+  "type": "stream",
+  "description": "Invalid escape then valid — recovers",
+  "input": {
+    "chunks_hex": [
+      "AA55020000AA9997A6",
+      "AA550100008883"
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "ERROR",
+        "error_code": "SYNC_ERROR"
+      },
+      {
+        "type": "FRAME",
+        "payload_hex": "00"
+      }
+    ]
+  }
+}

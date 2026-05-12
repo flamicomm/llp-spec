@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_three_nested",
+  "type": "encode",
+  "description": "Encode — Three nested passthrough layers before FinalNode + 'deep'",
+  "input": {
+    "llp_payload_hex": "0101010201020301030064656570"
+  },
+  "expected": {
+    "frame_hex": "AA550E000101010201020301030064656570F451"
+  }
+}

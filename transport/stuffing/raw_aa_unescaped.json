@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "raw_aa_unescaped",
+  "type": "decode",
+  "description": "Raw 0xAA without 0x00 escape byte",
+  "input": {
+    "frame_hex": "AA55020000AA97A6"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "SYNC_ERROR"
+  }
+}

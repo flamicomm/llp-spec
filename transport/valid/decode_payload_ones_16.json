@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_ones_16",
+  "type": "decode",
+  "description": "Parse valid frame — 16 bytes of 0x01",
+  "input": {
+    "frame_hex": "AA551100000101010101010101010101010101010161B6"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0001010101010101010101010101010101"
+  }
+}

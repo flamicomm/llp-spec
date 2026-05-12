@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "truncated_after_len_h",
+  "type": "decode",
+  "description": "After complete length field — frame incomplete, timeout expected",
+  "input": {
+    "frame_hex": "AA550600"
+  },
+  "expected": {
+    "result": "INCOMPLETE",
+    "error_code": "TIMEOUT"
+  }
+}

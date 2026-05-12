@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_unknown_layer_id",
+  "type": "decode",
+  "description": "Parse — Unknown layer ID (0xFF) with metadata + FinalNode + 'data'",
+  "input": {
+    "frame_hex": "AA550800FF010000646174615B24"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "FF01000064617461"
+  }
+}

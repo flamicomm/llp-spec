@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_ones_16",
+  "type": "encode",
+  "description": "16 bytes of 0x01",
+  "input": {
+    "llp_payload_hex": "0001010101010101010101010101010101"
+  },
+  "expected": {
+    "frame_hex": "AA551100000101010101010101010101010101010161B6"
+  }
+}

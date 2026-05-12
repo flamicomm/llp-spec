@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_transform_FE_meta5",
+  "type": "encode",
+  "description": "Encode — Transform 0xFE with 5 bytes metadata + FinalNode + 0xFF",
+  "input": {
+    "llp_payload_hex": "FE05010203040500FF"
+  },
+  "expected": {
+    "frame_hex": "AA550900FE05010203040500FF8C62"
+  }
+}

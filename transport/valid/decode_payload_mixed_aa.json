@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_mixed_aa",
+  "type": "decode",
+  "description": "Parse valid frame — Scattered 0xAA bytes with normal data",
+  "input": {
+    "frame_hex": "AA5506000001AA0002AA0003DBD7"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0001AA02AA03"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "truncated_after_magic2",
+  "type": "decode",
+  "description": "Both magic bytes — frame incomplete, timeout expected",
+  "input": {
+    "frame_hex": "AA55"
+  },
+  "expected": {
+    "result": "INCOMPLETE",
+    "error_code": "TIMEOUT"
+  }
+}

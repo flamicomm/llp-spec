@@ -1,0 +1,58 @@
+{
+  "spec_version": "3.0.0",
+  "name": "timeout_during_second_of_two",
+  "type": "timing",
+  "description": "First frame OK, then timeout during second frame",
+  "input": {
+    "events": [
+      {
+        "byte_hex": "AA",
+        "time_ms": 0
+      },
+      {
+        "byte_hex": "55",
+        "time_ms": 1
+      },
+      {
+        "byte_hex": "01",
+        "time_ms": 2
+      },
+      {
+        "byte_hex": "00",
+        "time_ms": 3
+      },
+      {
+        "byte_hex": "00",
+        "time_ms": 4
+      },
+      {
+        "byte_hex": "88",
+        "time_ms": 5
+      },
+      {
+        "byte_hex": "83",
+        "time_ms": 6
+      },
+      {
+        "byte_hex": "AA",
+        "time_ms": 7
+      },
+      {
+        "byte_hex": "55",
+        "time_ms": 8000
+      }
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "FRAME",
+        "payload_hex": "00"
+      },
+      {
+        "type": "ERROR",
+        "error_code": "TIMEOUT"
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_zero_meta_then_final",
+  "type": "encode",
+  "description": "Encode — Passthrough (meta=0) + FinalNode + 'ab'",
+  "input": {
+    "llp_payload_hex": "010000006162"
+  },
+  "expected": {
+    "frame_hex": "AA550600010000006162BE62"
+  }
+}

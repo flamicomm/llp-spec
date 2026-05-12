@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_aa_suffix",
+  "type": "decode",
+  "description": "Parse valid frame — 0xAA at end of payload (right before CRC)",
+  "input": {
+    "frame_hex": "AA5503000042AA00C665"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0042AA"
+  }
+}

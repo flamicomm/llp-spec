@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "empty_payload",
+  "type": "decode",
+  "description": "Zero-length payload — no layer data at all",
+  "input": {
+    "frame_hex": "AA550000003436"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": ""
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_eight_bytes",
+  "type": "decode",
+  "description": "Parse valid frame — 8 sequential bytes",
+  "input": {
+    "frame_hex": "AA5509000000010203040506079D89"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "000001020304050607"
+  }
+}

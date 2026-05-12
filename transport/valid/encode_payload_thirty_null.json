@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_thirty_null",
+  "type": "encode",
+  "description": "30 null bytes",
+  "input": {
+    "llp_payload_hex": "00000000000000000000000000000000000000000000000000000000000000"
+  },
+  "expected": {
+    "frame_hex": "AA551F00000000000000000000000000000000000000000000000000000000000000006AC1"
+  }
+}

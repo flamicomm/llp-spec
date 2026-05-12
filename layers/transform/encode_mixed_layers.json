@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_mixed_layers",
+  "type": "encode",
+  "description": "Encode — Passthrough (0x01) then transform (0x81) then FinalNode",
+  "input": {
+    "llp_payload_hex": "010211228101FF0055AA01"
+  },
+  "expected": {
+    "frame_hex": "AA550B00010211228101FF0055AA0001C753"
+  }
+}

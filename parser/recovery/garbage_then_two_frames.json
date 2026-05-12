@@ -1,0 +1,25 @@
+{
+  "spec_version": "3.0.0",
+  "name": "garbage_then_two_frames",
+  "type": "stream",
+  "description": "Garbage then two valid frames",
+  "input": {
+    "chunks_hex": [
+      "DEADBEEF",
+      "AA550100008883",
+      "AA5506000048656C6C6F3798"
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "FRAME",
+        "payload_hex": "00"
+      },
+      {
+        "type": "FRAME",
+        "payload_hex": "0048656C6C6F"
+      }
+    ]
+  }
+}

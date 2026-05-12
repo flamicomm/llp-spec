@@ -1,0 +1,29 @@
+{
+  "spec_version": "3.0.0",
+  "name": "multiple_errors_then_valid",
+  "type": "stream",
+  "description": "Two CRC errors then a valid frame — stress recovery",
+  "input": {
+    "chunks_hex": [
+      "AA55010000887C",
+      "AA5506000048656C6C6F3767",
+      "AA550100008883"
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "ERROR",
+        "error_code": "CHECKSUM"
+      },
+      {
+        "type": "ERROR",
+        "error_code": "CHECKSUM"
+      },
+      {
+        "type": "FRAME",
+        "payload_hex": "00"
+      }
+    ]
+  }
+}

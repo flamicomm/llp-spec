@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_max_passthrough",
+  "type": "decode",
+  "description": "Parse — Max passthrough layer ID (0x7F) with metadata + FinalNode + 'xyz'",
+  "input": {
+    "frame_hex": "AA5508007F02F00F0078797ACA6E"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "7F02F00F0078797A"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_zero_meta_len",
+  "type": "decode",
+  "description": "Parse — Passthrough layer with meta_len=0 + FinalNode + 'data'",
+  "input": {
+    "frame_hex": "AA55070001000064617461B65F"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "01000064617461"
+  }
+}

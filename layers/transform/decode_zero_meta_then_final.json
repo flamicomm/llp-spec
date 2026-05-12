@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_zero_meta_then_final",
+  "type": "decode",
+  "description": "Parse — Passthrough (meta=0) + FinalNode + 'ab'",
+  "input": {
+    "frame_hex": "AA550600010000006162BE62"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "010000006162"
+  }
+}

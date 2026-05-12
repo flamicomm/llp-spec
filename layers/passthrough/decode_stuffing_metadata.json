@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_stuffing_metadata",
+  "type": "decode",
+  "description": "Parse — Layer metadata containing 0xAA and 0x55",
+  "input": {
+    "frame_hex": "AA5509000104AA0000AA0055004F4BC83C"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0104AA00AA55004F4B"
+  }
+}

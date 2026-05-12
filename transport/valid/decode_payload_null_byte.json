@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_null_byte",
+  "type": "decode",
+  "description": "Parse valid frame — Payload containing a single 0x00 byte",
+  "input": {
+    "frame_hex": "AA550200000037B2"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0000"
+  }
+}

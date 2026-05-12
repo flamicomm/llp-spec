@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_byte_0x80",
+  "type": "encode",
+  "description": "Single 0x80 byte (min transform layer ID)",
+  "input": {
+    "llp_payload_hex": "0080"
+  },
+  "expected": {
+    "frame_hex": "AA5502000080BF23"
+  }
+}

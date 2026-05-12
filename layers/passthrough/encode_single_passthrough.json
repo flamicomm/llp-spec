@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_single_passthrough",
+  "type": "encode",
+  "description": "Encode — Passthrough (0x01) with 3 bytes metadata + FinalNode + 'Hello'",
+  "input": {
+    "llp_payload_hex": "01031020300048656C6C6F"
+  },
+  "expected": {
+    "frame_hex": "AA550B0001031020300048656C6C6F6191"
+  }
+}

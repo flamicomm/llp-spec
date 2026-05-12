@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_aa_byte",
+  "type": "encode",
+  "description": "Payload with single 0xAA — triggers byte stuffing",
+  "input": {
+    "llp_payload_hex": "00AA"
+  },
+  "expected": {
+    "frame_hex": "AA55020000AA0097A6"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_triple_aa",
+  "type": "encode",
+  "description": "Three consecutive 0xAA bytes",
+  "input": {
+    "llp_payload_hex": "00AAAAAA"
+  },
+  "expected": {
+    "frame_hex": "AA55040000AA00AA00AA00722F"
+  }
+}

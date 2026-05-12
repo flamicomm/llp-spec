@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_byte_0x7F",
+  "type": "decode",
+  "description": "Parse valid frame — Single 0x7F byte (max passthrough layer ID)",
+  "input": {
+    "frame_hex": "AA550200007F4F3D"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "007F"
+  }
+}

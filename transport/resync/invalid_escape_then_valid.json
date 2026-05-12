@@ -1,0 +1,23 @@
+{
+  "spec_version": "3.0.0",
+  "name": "invalid_escape_then_valid",
+  "type": "stream",
+  "description": "Invalid escape then valid frame — parser recovers with SYNC_ERROR",
+  "input": {
+    "chunks_hex": [
+      "AA55020000AA9997A6AA550100008883"
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "ERROR",
+        "error_code": "SYNC_ERROR"
+      },
+      {
+        "type": "FRAME",
+        "payload_hex": "00"
+      }
+    ]
+  }
+}

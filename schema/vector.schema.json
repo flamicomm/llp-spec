@@ -1,0 +1,208 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/anomalyco/llp-spec/schema/vector.schema.json",
+  "title": "LLP Test Vector Schema v3.0.0",
+  "description": "Schema for LLP (Layered Link Protocol) official test vectors",
+  "type": "object",
+  "definitions": {
+    "hex_string": {
+      "type": "string",
+      "pattern": "^[0-9A-F]*$",
+      "description": "Uppercase hex-encoded binary data (even length, may be empty)"
+    },
+    "byte_hex": {
+      "type": "string",
+      "pattern": "^[0-9A-F]{2}$",
+      "description": "Exactly two uppercase hex characters representing one byte"
+    },
+    "error_code": {
+      "type": "string",
+      "enum": ["CHECKSUM", "TIMEOUT", "SYNC_ERROR", "PAYLOAD_LEN_INVALID", "BUFFER_FULL"],
+      "description": "Machine-readable error code returned by the parser"
+    },
+    "result_type": {
+      "type": "string",
+      "enum": ["FRAME", "ERROR", "INCOMPLETE", "NONE"],
+      "description": "Frame parsing outcome"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "spec_version": {
+          "description": "Semantic version of the LLP specification",
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "type": {
+          "description": "Category of test vector",
+          "type": "string",
+          "enum": ["encode", "decode", "stream", "timing"]
+        },
+        "name": {
+          "description": "Unique identifier for this test vector (matches filename)",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "description": {
+          "description": "Human-readable explanation of what this vector tests",
+          "type": "string"
+        }
+      },
+      "required": ["spec_version", "type", "name", "description"]
+    },
+    {
+      "if": {"properties": {"type": {"const": "encode"}}},
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "llp_payload_hex": {
+                "$ref": "#/definitions/hex_string",
+                "description": "Layer chain bytes that go between length and CRC (includes layer headers + FinalNode + raw data)"
+              }
+            },
+            "required": ["llp_payload_hex"],
+            "additionalProperties": false
+          },
+          "expected": {
+            "type": "object",
+            "properties": {
+              "frame_hex": {
+                "$ref": "#/definitions/hex_string",
+                "description": "Complete LLP transport frame including magic, length, stuffed payload, and stuffed CRC"
+              }
+            },
+            "required": ["frame_hex"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["input", "expected"]
+      }
+    },
+    {
+      "if": {"properties": {"type": {"const": "decode"}}},
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "frame_hex": {"$ref": "#/definitions/hex_string"}
+            },
+            "required": ["frame_hex"],
+            "additionalProperties": false
+          },
+          "expected": {
+            "type": "object",
+            "properties": {
+              "result": {"$ref": "#/definitions/result_type"},
+              "payload_hex": {"$ref": "#/definitions/hex_string"},
+              "error_code": {"$ref": "#/definitions/error_code"}
+            },
+            "required": ["result"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["input", "expected"]
+      }
+    },
+    {
+      "if": {"properties": {"type": {"const": "stream"}}},
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "chunks_hex": {
+                "type": "array",
+                "items": {"$ref": "#/definitions/hex_string"},
+                "description": "Ordered list of byte chunks fed sequentially to the parser"
+              }
+            },
+            "required": ["chunks_hex"],
+            "additionalProperties": false
+          },
+          "expected": {
+            "type": "object",
+            "properties": {
+              "events": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {"const": "FRAME"},
+                        "payload_hex": {"$ref": "#/definitions/hex_string"}
+                      },
+                      "required": ["type", "payload_hex"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {"const": "ERROR"},
+                        "error_code": {"$ref": "#/definitions/error_code"}
+                      },
+                      "required": ["type", "error_code"],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "description": "Ordered list of events emitted by the parser"
+              }
+            },
+            "required": ["events"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["input", "expected"]
+      }
+    },
+    {
+      "if": {"properties": {"type": {"const": "timing"}}},
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "byte_hex": {"$ref": "#/definitions/byte_hex"},
+                    "time_ms": {"type": "integer", "minimum": 0}
+                  },
+                  "required": ["byte_hex", "time_ms"],
+                  "additionalProperties": false
+                },
+                "description": "Ordered list of byte arrival events with timestamps"
+              }
+            },
+            "required": ["events"],
+            "additionalProperties": false
+          },
+          "expected": {
+            "type": "object",
+            "properties": {
+              "events": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {"type": "object", "properties": {"type": {"const": "FRAME"}, "payload_hex": {"$ref": "#/definitions/hex_string"}}, "required": ["type", "payload_hex"], "additionalProperties": false},
+                    {"type": "object", "properties": {"type": {"const": "ERROR"}, "error_code": {"$ref": "#/definitions/error_code"}}, "required": ["type", "error_code"], "additionalProperties": false}
+                  ]
+                }
+              }
+            },
+            "required": ["events"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["input", "expected"]
+      }
+    }
+  ]
+}

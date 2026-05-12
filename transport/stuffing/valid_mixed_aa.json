@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "valid_mixed_aa",
+  "type": "decode",
+  "description": "Valid stuffed frame — Scattered 0xAA bytes",
+  "input": {
+    "frame_hex": "AA5506000001AA0002AA0003DBD7"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0001AA02AA03"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_ascii_test",
+  "type": "decode",
+  "description": "Parse valid frame — 4-byte ASCII 'Test'",
+  "input": {
+    "frame_hex": "AA550500005465737491B9"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0054657374"
+  }
+}

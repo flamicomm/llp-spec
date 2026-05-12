@@ -1,0 +1,20 @@
+{
+  "spec_version": "3.0.0",
+  "name": "mid_stuffing",
+  "type": "stream",
+  "description": "Split in middle of stuffed sequence",
+  "input": {
+    "chunks_hex": [
+      "AA55020000AA",
+      "0097A6"
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "FRAME",
+        "payload_hex": "00AA"
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_null_byte",
+  "type": "encode",
+  "description": "Payload containing a single 0x00 byte",
+  "input": {
+    "llp_payload_hex": "0000"
+  },
+  "expected": {
+    "frame_hex": "AA550200000037B2"
+  }
+}

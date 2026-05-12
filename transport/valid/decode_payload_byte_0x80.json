@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_byte_0x80",
+  "type": "decode",
+  "description": "Parse valid frame — Single 0x80 byte (min transform layer ID)",
+  "input": {
+    "frame_hex": "AA5502000080BF23"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0080"
+  }
+}

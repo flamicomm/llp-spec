@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_ascii_test",
+  "type": "encode",
+  "description": "4-byte ASCII 'Test'",
+  "input": {
+    "llp_payload_hex": "0054657374"
+  },
+  "expected": {
+    "frame_hex": "AA550500005465737491B9"
+  }
+}

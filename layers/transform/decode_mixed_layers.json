@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_mixed_layers",
+  "type": "decode",
+  "description": "Parse — Passthrough (0x01) then transform (0x81) then FinalNode",
+  "input": {
+    "frame_hex": "AA550B00010211228101FF0055AA0001C753"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "010211228101FF0055AA01"
+  }
+}

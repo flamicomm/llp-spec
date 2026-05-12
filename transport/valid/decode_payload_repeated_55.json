@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_repeated_55",
+  "type": "decode",
+  "description": "Parse valid frame — 8 bytes of 0x55",
+  "input": {
+    "frame_hex": "AA5509000055555555555555556E3D"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "005555555555555555"
+  }
+}

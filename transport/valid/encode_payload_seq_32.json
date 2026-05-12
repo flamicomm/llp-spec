@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_seq_32",
+  "type": "encode",
+  "description": "32 sequential bytes",
+  "input": {
+    "llp_payload_hex": "00000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F"
+  },
+  "expected": {
+    "frame_hex": "AA55210000000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F9845"
+  }
+}

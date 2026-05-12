@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "corrupted_last_byte_payload_mixed_aa",
+  "type": "decode",
+  "description": "CRC last byte flipped — Scattered 0xAA bytes with normal data",
+  "input": {
+    "frame_hex": "AA5506000001AA0002AA0003DB28"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "CHECKSUM"
+  }
+}

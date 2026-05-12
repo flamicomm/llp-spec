@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_two_passthrough",
+  "type": "encode",
+  "description": "Encode — Two passthrough layers (0x01, 0x02) with metadata containing 0xAA",
+  "input": {
+    "llp_payload_hex": "0101AA0202BBCC0042"
+  },
+  "expected": {
+    "frame_hex": "AA5509000101AA000202BBCC0042822E"
+  }
+}

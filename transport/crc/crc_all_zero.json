@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "crc_all_zero",
+  "type": "decode",
+  "description": "CRC field set to 0x0000",
+  "input": {
+    "frame_hex": "AA5506000048656C6C6F0000"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "CHECKSUM"
+  }
+}

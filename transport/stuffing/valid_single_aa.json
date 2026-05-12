@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "valid_single_aa",
+  "type": "decode",
+  "description": "Valid stuffed frame — Single 0xAA stuffed byte",
+  "input": {
+    "frame_hex": "AA55020000AA0097A6"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "00AA"
+  }
+}

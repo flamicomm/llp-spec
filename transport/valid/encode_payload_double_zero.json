@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_double_zero",
+  "type": "encode",
+  "description": "Two consecutive 0x00 bytes",
+  "input": {
+    "llp_payload_hex": "000000"
+  },
+  "expected": {
+    "frame_hex": "AA550300000000C81A"
+  }
+}

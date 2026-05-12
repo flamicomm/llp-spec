@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "magic_only",
+  "type": "decode",
+  "description": "Only AA55, no length or payload",
+  "input": {
+    "frame_hex": "AA55"
+  },
+  "expected": {
+    "result": "INCOMPLETE",
+    "error_code": "TIMEOUT"
+  }
+}

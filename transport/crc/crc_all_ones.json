@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "crc_all_ones",
+  "type": "decode",
+  "description": "CRC field set to 0xFFFF",
+  "input": {
+    "frame_hex": "AA5506000048656C6C6FFFFF"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "CHECKSUM"
+  }
+}

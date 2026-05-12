@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_empty_payload",
+  "type": "encode",
+  "description": "Empty application payload — only FinalNode marker (0x00)",
+  "input": {
+    "llp_payload_hex": "00"
+  },
+  "expected": {
+    "frame_hex": "AA550100008883"
+  }
+}

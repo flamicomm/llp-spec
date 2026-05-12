@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "corrupted_last_byte_payload_aa55",
+  "type": "decode",
+  "description": "CRC last byte flipped — Payload with 0xAA 0x55 — magic sequence in payload",
+  "input": {
+    "frame_hex": "AA55030000AA00552D1D"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "CHECKSUM"
+  }
+}

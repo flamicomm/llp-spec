@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "invalid_escape_0xAA",
+  "type": "decode",
+  "description": "Invalid escape sequence — 0xAA followed by another 0xAA",
+  "input": {
+    "frame_hex": "AA55020000AAAA97A6"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "SYNC_ERROR"
+  }
+}

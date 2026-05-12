@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_aa55",
+  "type": "encode",
+  "description": "Payload with 0xAA 0x55 — magic sequence in payload",
+  "input": {
+    "llp_payload_hex": "00AA55"
+  },
+  "expected": {
+    "frame_hex": "AA55030000AA00552DE2"
+  }
+}

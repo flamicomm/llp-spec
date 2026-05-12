@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_thirty_null",
+  "type": "decode",
+  "description": "Parse valid frame — 30 null bytes",
+  "input": {
+    "frame_hex": "AA551F00000000000000000000000000000000000000000000000000000000000000006AC1"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "00000000000000000000000000000000000000000000000000000000000000"
+  }
+}

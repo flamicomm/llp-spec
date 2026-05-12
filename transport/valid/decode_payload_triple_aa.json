@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_payload_triple_aa",
+  "type": "decode",
+  "description": "Parse valid frame — Three consecutive 0xAA bytes",
+  "input": {
+    "frame_hex": "AA55040000AA00AA00AA00722F"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "00AAAAAA"
+  }
+}

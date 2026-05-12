@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "empty_stream",
+  "type": "decode",
+  "description": "Empty byte stream — no frame",
+  "input": {
+    "frame_hex": ""
+  },
+  "expected": {
+    "result": "NONE"
+  }
+}

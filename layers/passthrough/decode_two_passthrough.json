@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_two_passthrough",
+  "type": "decode",
+  "description": "Parse — Two passthrough layers (0x01, 0x02) with metadata containing 0xAA",
+  "input": {
+    "frame_hex": "AA5509000101AA000202BBCC0042822E"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0101AA0202BBCC0042"
+  }
+}

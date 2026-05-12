@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_zero_meta_len",
+  "type": "encode",
+  "description": "Encode — Passthrough layer with meta_len=0 + FinalNode + 'data'",
+  "input": {
+    "llp_payload_hex": "01000064617461"
+  },
+  "expected": {
+    "frame_hex": "AA55070001000064617461B65F"
+  }
+}

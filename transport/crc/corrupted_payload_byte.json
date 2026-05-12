@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "corrupted_payload_byte",
+  "type": "decode",
+  "description": "One payload byte flipped — CRC mismatch",
+  "input": {
+    "frame_hex": "AA55060000489A6C6C6F3798"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "CHECKSUM"
+  }
+}

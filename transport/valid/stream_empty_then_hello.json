@@ -1,0 +1,23 @@
+{
+  "spec_version": "3.0.0",
+  "name": "stream_empty_then_hello",
+  "type": "stream",
+  "description": "Empty then hello frame concatenated",
+  "input": {
+    "chunks_hex": [
+      "AA550100008883AA5506000048656C6C6F3798"
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "FRAME",
+        "payload_hex": "00"
+      },
+      {
+        "type": "FRAME",
+        "payload_hex": "0048656C6C6F"
+      }
+    ]
+  }
+}

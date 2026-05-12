@@ -1,0 +1,20 @@
+{
+  "spec_version": "3.0.0",
+  "name": "at_crc_boundary",
+  "type": "stream",
+  "description": "Split between CRC bytes",
+  "input": {
+    "chunks_hex": [
+      "AA55020000AA0097",
+      "A6"
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "FRAME",
+        "payload_hex": "00AA"
+      }
+    ]
+  }
+}

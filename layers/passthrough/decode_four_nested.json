@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_four_nested",
+  "type": "decode",
+  "description": "Parse — Four nested passthrough layers + FinalNode + 'end'",
+  "input": {
+    "frame_hex": "AA550C00010002000300040000656E643755"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "010002000300040000656E64"
+  }
+}

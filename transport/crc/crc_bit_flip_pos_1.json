@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "crc_bit_flip_pos_1",
+  "type": "decode",
+  "description": "Single bit flip at position 1 in CRC low byte",
+  "input": {
+    "frame_hex": "AA5506000048656C6C6F3598"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "CHECKSUM"
+  }
+}

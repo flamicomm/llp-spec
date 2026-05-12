@@ -1,0 +1,19 @@
+{
+  "spec_version": "3.0.0",
+  "name": "aa55_in_payload_no_false_resync",
+  "type": "stream",
+  "description": "0xAA 0x55 in payload is stuffed — parser does not split frame",
+  "input": {
+    "chunks_hex": [
+      "AA55030000AA00552DE2"
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "FRAME",
+        "payload_hex": "00AA55"
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_deep_nested_5",
+  "type": "decode",
+  "description": "Parse — Five passthrough layers with zero metadata + FinalNode + 'end'",
+  "input": {
+    "frame_hex": "AA550E000100010001000100010000656E64A8D3"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0100010001000100010000656E64"
+  }
+}

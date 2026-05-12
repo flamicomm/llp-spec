@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "corrupted_last_byte_hello_world",
+  "type": "decode",
+  "description": "CRC last byte flipped — 5-byte ASCII payload 'Hello'",
+  "input": {
+    "frame_hex": "AA5506000048656C6C6F3767"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "CHECKSUM"
+  }
+}

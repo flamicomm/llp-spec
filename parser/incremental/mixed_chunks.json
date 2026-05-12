@@ -1,0 +1,26 @@
+{
+  "spec_version": "3.0.0",
+  "name": "mixed_chunks",
+  "type": "stream",
+  "description": "Two frames with varied chunk sizes",
+  "input": {
+    "chunks_hex": [
+      "AA5501",
+      "00008883",
+      "AA55060000",
+      "48656C6C6F3798"
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "FRAME",
+        "payload_hex": "00"
+      },
+      {
+        "type": "FRAME",
+        "payload_hex": "0048656C6C6F"
+      }
+    ]
+  }
+}

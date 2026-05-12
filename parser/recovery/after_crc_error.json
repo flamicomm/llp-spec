@@ -1,0 +1,24 @@
+{
+  "spec_version": "3.0.0",
+  "name": "after_crc_error",
+  "type": "stream",
+  "description": "CRC error then valid frame — recovers",
+  "input": {
+    "chunks_hex": [
+      "AA55010000887C",
+      "AA5506000048656C6C6F3798"
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "ERROR",
+        "error_code": "CHECKSUM"
+      },
+      {
+        "type": "FRAME",
+        "payload_hex": "0048656C6C6F"
+      }
+    ]
+  }
+}

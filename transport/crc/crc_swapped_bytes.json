@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "crc_swapped_bytes",
+  "type": "decode",
+  "description": "CRC bytes in wrong byte order (big-endian instead of little)",
+  "input": {
+    "frame_hex": "AA5506000048656C6C6F9837"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "CHECKSUM"
+  }
+}

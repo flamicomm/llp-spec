@@ -1,0 +1,30 @@
+{
+  "spec_version": "3.0.0",
+  "name": "two_bytes_empty_plus_aa",
+  "type": "stream",
+  "description": "Empty + aa_byte frames two bytes at a time",
+  "input": {
+    "chunks_hex": [
+      "AA55",
+      "0100",
+      "0088",
+      "83AA",
+      "5502",
+      "0000",
+      "AA00",
+      "97A6"
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "FRAME",
+        "payload_hex": "00"
+      },
+      {
+        "type": "FRAME",
+        "payload_hex": "00AA"
+      }
+    ]
+  }
+}

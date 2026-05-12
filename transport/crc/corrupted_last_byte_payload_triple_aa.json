@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "corrupted_last_byte_payload_triple_aa",
+  "type": "decode",
+  "description": "CRC last byte flipped — Three consecutive 0xAA bytes",
+  "input": {
+    "frame_hex": "AA55040000AA00AA00AA0072D0"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "CHECKSUM"
+  }
+}

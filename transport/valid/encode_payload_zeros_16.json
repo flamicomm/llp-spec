@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_zeros_16",
+  "type": "encode",
+  "description": "16 zero bytes",
+  "input": {
+    "llp_payload_hex": "0000000000000000000000000000000000"
+  },
+  "expected": {
+    "frame_hex": "AA551100000000000000000000000000000000000036A3"
+  }
+}

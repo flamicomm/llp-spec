@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_payload_mixed_55_aa",
+  "type": "encode",
+  "description": "Alternating 0x55 0xAA pattern",
+  "input": {
+    "llp_payload_hex": "0055AA55AA55AA55AA"
+  },
+  "expected": {
+    "frame_hex": "AA5509000055AA0055AA0055AA0055AA002313"
+  }
+}

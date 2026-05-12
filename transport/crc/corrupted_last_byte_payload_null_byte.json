@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "corrupted_last_byte_payload_null_byte",
+  "type": "decode",
+  "description": "CRC last byte flipped — Payload containing a single 0x00 byte",
+  "input": {
+    "frame_hex": "AA5502000000374D"
+  },
+  "expected": {
+    "result": "ERROR",
+    "error_code": "CHECKSUM"
+  }
+}

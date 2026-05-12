@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_final_hello",
+  "type": "decode",
+  "description": "Parse — FinalNode then 'Hello'",
+  "input": {
+    "frame_hex": "AA5506000048656C6C6F3798"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0048656C6C6F"
+  }
+}

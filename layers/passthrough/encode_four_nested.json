@@ -1,0 +1,12 @@
+{
+  "spec_version": "3.0.0",
+  "name": "encode_four_nested",
+  "type": "encode",
+  "description": "Encode — Four nested passthrough layers + FinalNode + 'end'",
+  "input": {
+    "llp_payload_hex": "010002000300040000656E64"
+  },
+  "expected": {
+    "frame_hex": "AA550C00010002000300040000656E643755"
+  }
+}

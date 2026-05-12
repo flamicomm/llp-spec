@@ -1,0 +1,50 @@
+{
+  "spec_version": "3.0.0",
+  "name": "timeout_then_valid_frame",
+  "type": "timing",
+  "description": "Timeout then complete valid frame arrives after reset",
+  "input": {
+    "events": [
+      {
+        "byte_hex": "AA",
+        "time_ms": 0
+      },
+      {
+        "byte_hex": "55",
+        "time_ms": 1
+      },
+      {
+        "byte_hex": "01",
+        "time_ms": 5000
+      },
+      {
+        "byte_hex": "00",
+        "time_ms": 5001
+      },
+      {
+        "byte_hex": "00",
+        "time_ms": 5002
+      },
+      {
+        "byte_hex": "88",
+        "time_ms": 5003
+      },
+      {
+        "byte_hex": "83",
+        "time_ms": 5004
+      }
+    ]
+  },
+  "expected": {
+    "events": [
+      {
+        "type": "ERROR",
+        "error_code": "TIMEOUT"
+      },
+      {
+        "type": "FRAME",
+        "payload_hex": "00"
+      }
+    ]
+  }
+}

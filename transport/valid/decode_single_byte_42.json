@@ -1,0 +1,13 @@
+{
+  "spec_version": "3.0.0",
+  "name": "decode_single_byte_42",
+  "type": "decode",
+  "description": "Parse valid frame — Single byte payload (0x42) — minimum non-empty frame",
+  "input": {
+    "frame_hex": "AA5502000042B1DA"
+  },
+  "expected": {
+    "result": "FRAME",
+    "payload_hex": "0042"
+  }
+}
