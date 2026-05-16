@@ -1,4 +1,4 @@
-# LLP Specification v3.0.0
+# LLP Specification v3.1.0
 
 **Layered Link Protocol** — a transport-level, language-agnostic protocol for framing, byte-stuffing, CRC integrity, and layer-based payload encapsulation.
 
@@ -327,7 +327,7 @@ Vectors are **grouped by category** into JSON files. Each file contains multiple
 
 ```json
 {
-  "spec_version": "3.0.0",
+  "spec_version": "3.1.0",
   "category": "transport_crc",
   "description": "Frames with invalid CRC values",
   "vectors": [
@@ -403,7 +403,7 @@ An LLP implementation **conforms** to this specification when it passes all offi
 Once an implementation passes 100 % of the vector suite:
 
 ```
-Compatible with LLP Spec v3.0.0
+Compatible with LLP Spec v3.1.0
 Passed: 199/199 official vectors
 ```
 
@@ -578,7 +578,7 @@ python3 build_vectors.py
 
 ## License
 
-LLP Specification v3.0.0 — Copyright © 2026 Flamingo Communications
+LLP Specification v3.1.0 — Copyright © 2026 Flamingo Communications
 
 This specification is maintained as the authoritative reference for the LLP protocol.
 All implementations should reference this document as the canonical behaviour definition.
