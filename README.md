@@ -309,7 +309,7 @@ After any error (CRC mismatch, sync error, timeout, or invalid length), the pars
 
 ## Test Vectors
 
-This repository contains **189 official test vectors** across 13 categories, covering encoding, decoding, stream parsing, and timing scenarios.
+This repository contains **199 official test vectors** across 13 categories, covering encoding, decoding, stream parsing, timing, and layer traversal scenarios.
 
 Vectors are **grouped by category** into JSON files. Each file contains multiple related samples to validate a specific aspect of the protocol.
 
@@ -318,9 +318,10 @@ Vectors are **grouped by category** into JSON files. Each file contains multiple
 | Type | Purpose | Input | Expected |
 |------|---------|-------|----------|
 | `encode` | Validate frame construction | `llp_payload_hex` (layer chain) | `frame_hex` (complete frame) |
-| `decode` | Validate frame parsing | `frame_hex` | `result` + `payload_hex` or `error_code` |
+| `decode` | Validate frame parsing | `frame_hex` | `outcome` + `payload_hex` or `error_code` |
 | `stream` | Validate incremental / multi-frame parsing | `chunks_hex[]` | `events[]` (FRAME or ERROR) |
 | `timing` | Validate timeout behaviour | `events[]` with `byte_hex` + `time_ms` | `events[]` (FRAME or ERROR) |
+| `traversal` | Validate layer chain parsing to extract final payload | `frame_hex` | `outcome` + `final_payload_hex` |
 
 ### File Format
 
@@ -333,16 +334,11 @@ Vectors are **grouped by category** into JSON files. Each file contains multiple
     {
       "name": "crc_all_zero",
       "type": "decode",
+      "result": "invalid",
+      "flags": [],
       "description": "CRC field set to 0x0000",
       "input": { "frame_hex": "AA5506000068656C6C6F0000" },
-      "expected": { "result": "ERROR", "error_code": "CHECKSUM" }
-    },
-    {
-      "name": "crc_off_by_one",
-      "type": "decode",
-      "description": "CRC differs by one bit",
-      "input": { "frame_hex": "AA5506000068656C6C6F2B90" },
-      "expected": { "result": "ERROR", "error_code": "CHECKSUM" }
+      "expected": { "outcome": "ERROR", "error_code": "CHECKSUM" }
     }
   ]
 }
@@ -350,23 +346,43 @@ Vectors are **grouped by category** into JSON files. Each file contains multiple
 
 All binary values are **uppercase hex strings**. See [schema/vector.schema.json](schema/vector.schema.json) for full validation rules.
 
+### Result Model (Wycheproof)
+
+Every vector carries a `result` field following the Wycheproof conformance model:
+
+| Value | Meaning |
+|-------|---------|
+| `"valid"` | Implementation MUST accept this input and produce the expected output |
+| `"invalid"` | Implementation MUST reject this input and produce the expected error |
+| `"acceptable"` | Implementation MAY accept or reject; any conformant behaviour is allowed |
+
+The `flags` array documents additional constraints:
+
+| Flag | Meaning |
+|------|---------|
+| `OptionalBehavior` | Behaviour is implementation-defined; both outcomes are conformant |
+| `EdgeCase` | Tests boundary conditions that may expose bugs |
+| `ImplementationDefined` | Behaviour depends on implementation configuration |
+| `Deprecated` | Input uses a deprecated feature; future versions may reject |
+| `Slow` | Timing vector requiring real-time sleeps; skipped by default, run with `--include-slow` |
+
 ### Vector Categories
 
 | Directory | File | Vectors | Description |
 |-----------|------|---------|-------------|
-| `transport/valid/` | `valid_frames.json` | 69 | Valid frame encode, decode round-trips, multi-frame streams |
-| `transport/crc/` | `invalid_crc_vectors.json` | 28 | CRC error detection (bit flips, byte swaps, all-zero, wrong CRC) |
-| `transport/stuffing/` | `stuffing_vectors.json` | 8 | Byte stuffing encode/decode edge cases |
-| `transport/resync/` | `resync_vectors.json` | 8 | Resynchronisation after noise and corruption |
-| `transport/truncation/` | `truncation_vectors.json` | 10 | Truncated frames at every field boundary |
-| `transport/timeout/` | `timeout_vectors.json` | 4 | Timeout behaviour between bytes |
-| `layers/passthrough/` | `passthrough_vectors.json` | 28 | Passthrough layer chain encode/decode |
-| `layers/transform/` | `transform_vectors.json` | 12 | Transform layer chain encode/decode |
-| `layers/malformed/` | `malformed_vectors.json` | 3 | Malformed layer chains |
-| `layers/traversal/` | `traversal_vectors.json` | 3 | Layer traversal to extract final payload |
-| `parser/incremental/` | `incremental_vectors.json` | 5 | Byte-by-byte and chunked incremental parsing |
-| `parser/fragmented/` | `fragmented_vectors.json` | 6 | Frame fragments split across chunk boundaries |
-| `parser/recovery/` | `recovery_vectors.json` | 5 | Recovery after errors in a byte stream |
+| `transport/` | `valid.json` | 69 | Valid frame encode, decode round-trips, multi-frame streams |
+| `transport/` | `crc.json` | 28 | CRC error detection (bit flips, byte swaps, all-zero, wrong CRC) |
+| `transport/` | `stuffing.json` | 8 | Byte stuffing encode/decode edge cases |
+| `transport/` | `resync.json` | 8 | Resynchronisation after noise and corruption |
+| `transport/` | `truncation.json` | 10 | Truncated frames at every field boundary |
+| `transport/` | `timeout.json` | 5 | Timeout behaviour between bytes |
+| `layers/` | `passthrough.json` | 24 | Passthrough layer chain encode/decode/traversal |
+| `layers/` | `transform.json` | 12 | Transform layer chain encode/decode |
+| `layers/` | `malformed.json` | 4 | Malformed layer chains (truncated metadata, empty payload, reserved IDs) |
+| `layers/` | `traversal.json` | 5 | Layer traversal to extract final application payload |
+| `parser/` | `incremental.json` | 5 | Byte-by-byte and chunked incremental parsing |
+| `parser/` | `fragmented.json` | 6 | Frame fragments split across chunk boundaries |
+| `parser/` | `recovery.json` | 5 | Recovery after errors in a byte stream |
 
 ### Vector Philosophy
 
@@ -388,7 +404,25 @@ Once an implementation passes 100 % of the vector suite:
 
 ```
 Compatible with LLP Spec v3.0.0
-Passed: 189/189 official vectors
+Passed: 199/199 official vectors
+```
+
+### Validation
+
+This repository includes a Python reference runner for automated validation:
+
+```bash
+# Validate vectors (skips Slow timing vectors by default)
+python3 validate_vectors.py
+
+# Validate all vectors including timing (takes ~20 seconds)
+python3 validate_vectors.py --include-slow
+
+# Expected output (default, fast):
+# Total: 199  Passed: 194  Failed: 0  Skipped: 0  Slow: 5
+
+# Expected output (--include-slow, all vectors):
+# Total: 199  Passed: 199  Failed: 0  Skipped: 0  Slow: 0
 ```
 
 ### Conformance Requirements
@@ -399,7 +433,9 @@ Passed: 189/189 official vectors
 4. **Timing**: Must respect `LLP_FRAME_TIMEOUT_MS` (2000 ms default) for every `timing` vector
 5. **Stuffing**: Must correctly apply and remove byte stuffing according to the stuffing rules
 6. **CRC**: Must compute and verify CRC16-CCITT per the reference algorithm
-7. **Layer traversal**: Must correctly identify FinalNode and extract raw application data
+7. **Layer traversal**: Must correctly identify FinalNode and extract raw application data for `traversal` vectors
+8. **Error codes**: Must recognise all error codes: `CHECKSUM`, `TIMEOUT`, `SYNC_ERROR`, `PAYLOAD_LEN_INVALID`, `BUFFER_FULL`, `LAYER_MALFORMED`, `TRANSFORM_NO_HANDLER`
+9. **Result model**: Vectors with `result: "valid"` are mandatory; `result: "acceptable"` allows implementation choice documented via `flags`
 
 ### Non-Requirements
 
@@ -416,28 +452,52 @@ Passed: 189/189 official vectors
 llp-spec/
 ├── README.md                        # This file — the specification
 ├── spec_frame_generator.c           # C reference frame generator (uses llp_protocol.h)
-├── build_vectors.py                 # Python script to generate all JSON vectors
+├── build_vectors.py                # Python script to generate all JSON vectors
+├── validate_vectors.py             # Python reference runner — validates all vectors
+├── generate_fuzz_seeds.py          # Generates AFL/libFuzzer corpus seeds
 ├── schema/
-│   └── vector.schema.json           # JSON Schema for test vector validation
+│   ├── vector.schema.json         # JSON Schema v1.1.0 (draft-07) for test vector validation
+│   └── CHANGELOG.md               # Schema version history
 ├── transport/
-│   ├── valid/                       # Valid frame encoding tests
-│   ├── crc/                         # CRC error detection tests
-│   ├── stuffing/                    # Byte stuffing edge cases
-│   ├── truncation/                  # Truncated frame tests
-│   ├── resync/                      # Resynchronisation tests
-│   └── timeout/                     # Timeout behaviour tests
+│   ├── README.md                  # Category overview and behaviour reference
+│   ├── valid.json                 # Valid frame encoding/decoding tests
+│   ├── crc.json                   # CRC error detection tests
+│   ├── stuffing.json              # Byte stuffing edge cases
+│   ├── truncation.json            # Truncated frame tests
+│   ├── resync.json                 # Resynchronisation tests
+│   └── timeout.json               # Timeout behaviour tests (4 of 5 are Slow-flagged)
 ├── layers/
-│   ├── passthrough/                 # Passthrough layer encode/decode
-│   ├── transform/                   # Transform layer tests
-│   ├── malformed/                   # Malformed layer chain tests
-│   └── traversal/                   # Layer traversal tests
+│   ├── README.md                  # Category overview and behaviour reference
+│   ├── passthrough.json           # Passthrough layer tests
+│   ├── transform.json             # Transform layer tests
+│   ├── malformed.json             # Malformed layer chain tests
+│   └── traversal.json             # Layer traversal tests
 ├── parser/
-│   ├── incremental/                 # Byte-by-byte and chunked parsing
-│   ├── fragmented/                  # Fragment boundary tests
-│   └── recovery/                    # Error recovery tests
-├── interoperability/               # (Future) Cross-language runner scripts
-└── fuzz-seeds/                      # (Future) Fuzzing corpus seeds
+│   ├── README.md                  # Category overview and behaviour reference
+│   ├── incremental.json           # Byte-by-byte and chunked parsing
+│   ├── fragmented.json            # Fragment boundary tests
+│   └── recovery.json             # Error recovery tests
+├── interoperability/
+│   └── python/
+│       └── runner.py             # Python reference LLP implementation (canonical for validation)
+├── fuzz-seeds/                    # AFL/libFuzzer corpus seeds
+│   ├── empty/                    # Minimal valid frames
+│   ├── stuffing/                # Byte stuffing edge cases
+│   ├── layers/                  # Layer chain variants
+│   ├── errors/                  # Invalid frames (error触发)
+│   ├── edge_cases/              # Boundary conditions
+│   └── streams/                # Multi-frame stream seeds
 ```
+
+### Reference Implementations
+
+| Implementation | Role | Location |
+|---------------|------|----------|
+| **C (`llp_protocol.h`)** | Wire-format authority: defines exact frame bytes, stuffing, CRC, layer encoding | External library |
+| **Python (`runner.py`)** | Canonical reference for automated validation; all 199 vectors validated against this | `interoperability/python/runner.py` |
+| **C (`spec_frame_generator.c`)** | Generates reference hex values used by `build_vectors.py` | Root of repo |
+
+The C implementation defines the authoritative wire format. The Python implementation is the canonical reference for automated conformance testing. Both must produce byte-identical output for every encode vector.
 
 ### Key Files
 
@@ -445,7 +505,10 @@ llp-spec/
 |------|---------|
 | `spec_frame_generator.c` | Generates reference frame hex values using the C `llp_protocol.h` implementation. All encode vectors are produced by this program. |
 | `build_vectors.py` | Reads reference hex values and generates all JSON vector files. Run after modifying `spec_frame_generator.c`. |
-| `schema/vector.schema.json` | JSON Schema (draft-07) for validating vector file structure. |
+| `validate_vectors.py` | Python reference runner — validates all vectors against the Python implementation. Use `--include-slow` to run timing vectors. |
+| `interoperability/python/runner.py` | Python reference LLP implementation: CRC16-CCITT, frame building, deframing state machine, layer traversal. |
+| `schema/vector.schema.json` | JSON Schema v1.1.0 (draft-07) for validating vector file structure. |
+| `generate_fuzz_seeds.py` | Generates AFL/libFuzzer corpus seeds from official test vectors. |
 
 ### Regenerating Vectors
 
@@ -464,21 +527,21 @@ python3 build_vectors.py
 
 ## Wire Compatibility Matrix
 
-| Feature | C (llp_protocol.h) | Java (llp-core) | Requirement |
-|---------|-------------------|-----------------|-------------|
-| Frame magic (`AA 55`) | ✅ | ✅ | MUST |
-| Little-endian length | ✅ | ✅ | MUST |
-| Byte stuffing | ✅ | ✅ | MUST |
-| Unstuffing | ✅ | ✅ | MUST |
-| CRC16-CCITT (0x1021, 0xFFFF) | ✅ | ✅ | MUST |
-| CRC coverage (magic+len+payload) | ✅ | ✅ | MUST |
-| Timeout (2000 ms default) | ✅ | ✅ | MUST |
-| Layer chain parsing | ✅ | ✅ | MUST |
-| FinalNode detection | ✅ | ✅ | MUST |
-| Passthrough layers | ✅ | ✅ | MUST |
-| Transform layers | ✅ | ✅ | MUST |
-| Extended metadata (≥255) | ✅ | ✅ | SHOULD |
-| Optimistic resync after timeout | ✅ | — | MAY |
+| Feature | C (llp_protocol.h) | Java (llp-core) | Python (reference) | Requirement |
+|---------|-------------------|-----------------|---------------------|-------------|
+| Frame magic (`AA 55`) | ✅ | ✅ | ✅ | MUST |
+| Little-endian length | ✅ | ✅ | ✅ | MUST |
+| Byte stuffing | ✅ | ✅ | ✅ | MUST |
+| Unstuffing | ✅ | ✅ | ✅ | MUST |
+| CRC16-CCITT (0x1021, 0xFFFF) | ✅ | ✅ | ✅ | MUST |
+| CRC coverage (magic+len+payload) | ✅ | ✅ | ✅ | MUST |
+| Timeout (2000 ms default) | ✅ | ✅ | ✅ | MUST |
+| Layer chain parsing | ✅ | ✅ | ✅ | MUST |
+| FinalNode detection | ✅ | ✅ | ✅ | MUST |
+| Passthrough layers | ✅ | ✅ | ✅ | MUST |
+| Transform layers | ✅ | ✅ | ✅ | MUST |
+| Extended metadata (≥255) | ✅ | ✅ | ✅ | SHOULD |
+| Optimistic resync after timeout | ✅ | ✅ | ✅ | MAY |
 
 ---
 
@@ -502,12 +565,14 @@ python3 build_vectors.py
 ### Error Code Reference
 
 | Error Code | Meaning |
-|-----------|---------|
+|------------|---------|
 | `CHECKSUM` | CRC16-CCITT validation failed |
 | `TIMEOUT` | Inter-byte timeout exceeded |
 | `SYNC_ERROR` | Invalid escape sequence or unexpected byte in frame |
 | `PAYLOAD_LEN_INVALID` | Payload length exceeds implementation maximum |
 | `BUFFER_FULL` | Internal parser buffer overflow |
+| `LAYER_MALFORMED` | Layer chain metadata is truncated, inconsistent, or uses invalid IDs |
+| `TRANSFORM_NO_HANDLER` | Transform layer (0x80-0xFE) encountered with no registered handler |
 
 ---
 

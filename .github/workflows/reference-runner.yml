@@ -1,0 +1,29 @@
+name: Reference Runner
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'interoperability/python/**'
+      - 'validate_vectors.py'
+      - '.github/workflows/reference-runner.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'interoperability/python/**'
+      - 'validate_vectors.py'
+  workflow_dispatch:
+
+jobs:
+  python-runner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run reference runner
+        run: python validate_vectors.py
