@@ -1,0 +1,119 @@
+{
+  "spec_version": "3.1.0",
+  "category": "transport_stuffing",
+  "description": "Byte stuffing: valid stuffed frames, magic overlap, invalid escape sequences",
+  "vectors": [
+    {
+      "name": "valid_single_aa",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Valid stuffed frame — Single 0xAA stuffed byte",
+      "input": {
+        "frame_hex": "AA55020000AA0097A6"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00AA"
+      }
+    },
+    {
+      "name": "valid_magic_overlap",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Valid stuffed frame — 0xAA 0x55 in payload — stuffed, no false resync",
+      "input": {
+        "frame_hex": "AA55030000AA00552DE2"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00AA55"
+      }
+    },
+    {
+      "name": "valid_triple_aa",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Valid stuffed frame — Three consecutive 0xAA bytes",
+      "input": {
+        "frame_hex": "AA55040000AA00AA00AA00722F"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00AAAAAA"
+      }
+    },
+    {
+      "name": "valid_mixed_aa",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Valid stuffed frame — Scattered 0xAA bytes",
+      "input": {
+        "frame_hex": "AA5506000001AA0002AA0003DBD7"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0001AA02AA03"
+      }
+    },
+    {
+      "name": "invalid_escape_0x01",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Invalid escape sequence — 0xAA followed by 0x01",
+      "input": {
+        "frame_hex": "AA55020000AA0197A6"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "SYNC_ERROR"
+      }
+    },
+    {
+      "name": "invalid_escape_0xFF",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Invalid escape sequence — 0xAA followed by 0xFF",
+      "input": {
+        "frame_hex": "AA55020000AAFF97A6"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "SYNC_ERROR"
+      }
+    },
+    {
+      "name": "invalid_escape_0xAA",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Invalid escape sequence — 0xAA followed by another 0xAA",
+      "input": {
+        "frame_hex": "AA55020000AAAA97A6"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "SYNC_ERROR"
+      }
+    },
+    {
+      "name": "raw_aa_unescaped",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Raw 0xAA without 0x00 escape byte",
+      "input": {
+        "frame_hex": "AA55020000AA97A6"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "SYNC_ERROR"
+      }
+    }
+  ]
+}

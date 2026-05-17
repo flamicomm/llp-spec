@@ -1,0 +1,140 @@
+{
+  "spec_version": "3.1.0",
+  "category": "parser_recovery",
+  "description": "Error recovery: CRC, timeout, sync error, garbage, and multiple errors",
+  "vectors": [
+    {
+      "name": "after_crc_error",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "CRC error then valid frame — recovers",
+      "input": {
+        "chunks_hex": [
+          "AA55010000887C",
+          "AA5506000048656C6C6F3798"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "ERROR",
+            "error_code": "CHECKSUM"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "0048656C6C6F"
+          }
+        ]
+      }
+    },
+    {
+      "name": "after_truncation",
+      "type": "stream",
+      "result": "valid",
+      "flags": [
+        "Slow"
+      ],
+      "description": "Truncated mid-length then valid frame — parser recovers with SYNC_ERROR",
+      "input": {
+        "chunks_hex": [
+          "AA5501",
+          "AA550100008883"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "ERROR",
+            "error_code": "SYNC_ERROR"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    },
+    {
+      "name": "after_sync_error",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Invalid escape then valid — recovers",
+      "input": {
+        "chunks_hex": [
+          "AA55020000AA9997A6",
+          "AA550100008883"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "ERROR",
+            "error_code": "SYNC_ERROR"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    },
+    {
+      "name": "garbage_then_two_frames",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Garbage then two valid frames",
+      "input": {
+        "chunks_hex": [
+          "DEADBEEF",
+          "AA550100008883",
+          "AA5506000048656C6C6F3798"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "0048656C6C6F"
+          }
+        ]
+      }
+    },
+    {
+      "name": "multiple_errors_then_valid",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Two CRC errors then a valid frame — stress recovery",
+      "input": {
+        "chunks_hex": [
+          "AA55010000887C",
+          "AA5506000048656C6C6F3767",
+          "AA550100008883"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "ERROR",
+            "error_code": "CHECKSUM"
+          },
+          {
+            "type": "ERROR",
+            "error_code": "CHECKSUM"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    }
+  ]
+}

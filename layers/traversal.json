@@ -1,0 +1,81 @@
+{
+  "spec_version": "3.1.0",
+  "category": "layers_traversal",
+  "description": "Traverse layer chains to extract raw final payload",
+  "vectors": [
+    {
+      "name": "three_passthrough_get_deep",
+      "type": "traversal",
+      "result": "valid",
+      "flags": [],
+      "description": "Extract from three nested passthrough → 'deep'",
+      "input": {
+        "frame_hex": "AA550E000101010201020301030064656570F451"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "final_payload_hex": "64656570"
+      }
+    },
+    {
+      "name": "single_passthrough_get_hello",
+      "type": "traversal",
+      "result": "valid",
+      "flags": [],
+      "description": "Extract from single passthrough + FinalNode + 'Hello'",
+      "input": {
+        "frame_hex": "AA550B0001031020300048656C6C6F6191"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "final_payload_hex": "48656C6C6F"
+      }
+    },
+    {
+      "name": "direct_finalnode",
+      "type": "traversal",
+      "result": "valid",
+      "flags": [],
+      "description": "Bare FinalNode — no layers, just raw 0x42",
+      "input": {
+        "frame_hex": "AA5502000042B1DA"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "final_payload_hex": "42"
+      }
+    },
+    {
+      "name": "empty_final_payload",
+      "type": "traversal",
+      "result": "valid",
+      "flags": [
+        "EdgeCase"
+      ],
+      "description": "FinalNode with 0 bytes of raw application data",
+      "input": {
+        "frame_hex": "AA550100008883"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "final_payload_hex": ""
+      }
+    },
+    {
+      "name": "single_transform_blocked",
+      "type": "traversal",
+      "result": "invalid",
+      "flags": [
+        "ImplementationDefined"
+      ],
+      "description": "Transform layer (0x80) blocks traversal — no handler registered",
+      "input": {
+        "frame_hex": "AA5509008004DEADBEEF004F4BB396"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "TRANSFORM_NO_HANDLER"
+      }
+    }
+  ]
+}

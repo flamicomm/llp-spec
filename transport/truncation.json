@@ -1,0 +1,146 @@
+{
+  "spec_version": "3.1.0",
+  "category": "transport_truncation",
+  "description": "Truncated frames: each field boundary — tests timeout detection",
+  "vectors": [
+    {
+      "name": "truncated_after_magic1",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "First magic byte only — frame incomplete, timeout expected",
+      "input": {
+        "frame_hex": "AA"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "TIMEOUT"
+      }
+    },
+    {
+      "name": "truncated_after_magic2",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Both magic bytes — frame incomplete, timeout expected",
+      "input": {
+        "frame_hex": "AA55"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "TIMEOUT"
+      }
+    },
+    {
+      "name": "truncated_after_len_l",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "After first length byte — frame incomplete, timeout expected",
+      "input": {
+        "frame_hex": "AA5506"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "TIMEOUT"
+      }
+    },
+    {
+      "name": "truncated_after_len_h",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "After complete length field — frame incomplete, timeout expected",
+      "input": {
+        "frame_hex": "AA550600"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "TIMEOUT"
+      }
+    },
+    {
+      "name": "truncated_mid_payload_1",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "After one payload byte — frame incomplete, timeout expected",
+      "input": {
+        "frame_hex": "AA5506000048"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "TIMEOUT"
+      }
+    },
+    {
+      "name": "truncated_mid_payload_2",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "After two payload bytes — frame incomplete, timeout expected",
+      "input": {
+        "frame_hex": "AA550600004865"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "TIMEOUT"
+      }
+    },
+    {
+      "name": "truncated_mid_payload_4",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "After four payload bytes — frame incomplete, timeout expected",
+      "input": {
+        "frame_hex": "AA5506000048656C6C"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "TIMEOUT"
+      }
+    },
+    {
+      "name": "truncated_mid_crc_low",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "After first CRC byte — frame incomplete, timeout expected",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F37"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "TIMEOUT"
+      }
+    },
+    {
+      "name": "empty_stream",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Empty byte stream — no frame",
+      "input": {
+        "frame_hex": ""
+      },
+      "expected": {
+        "outcome": "NONE"
+      }
+    },
+    {
+      "name": "magic_only",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Only AA55, no length or payload",
+      "input": {
+        "frame_hex": "AA55"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "TIMEOUT"
+      }
+    }
+  ]
+}

@@ -1,0 +1,974 @@
+{
+  "spec_version": "3.1.0",
+  "category": "transport_valid",
+  "description": "Valid LLP frames: encoding, decoding round-trips, and multi-frame streams",
+  "vectors": [
+    {
+      "name": "encode_empty_payload",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Empty application payload — only FinalNode marker (0x00)",
+      "input": {
+        "llp_payload_hex": "00"
+      },
+      "expected": {
+        "frame_hex": "AA550100008883"
+      }
+    },
+    {
+      "name": "encode_single_byte_42",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Single byte payload (0x42) — minimum non-empty frame",
+      "input": {
+        "llp_payload_hex": "0042"
+      },
+      "expected": {
+        "frame_hex": "AA5502000042B1DA"
+      }
+    },
+    {
+      "name": "encode_hello_world",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "5-byte ASCII payload 'Hello'",
+      "input": {
+        "llp_payload_hex": "0048656C6C6F"
+      },
+      "expected": {
+        "frame_hex": "AA5506000048656C6C6F3798"
+      }
+    },
+    {
+      "name": "encode_payload_null_byte",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Payload containing a single 0x00 byte",
+      "input": {
+        "llp_payload_hex": "0000"
+      },
+      "expected": {
+        "frame_hex": "AA550200000037B2"
+      }
+    },
+    {
+      "name": "encode_payload_ff_byte",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Payload containing a single 0xFF byte",
+      "input": {
+        "llp_payload_hex": "00FF"
+      },
+      "expected": {
+        "frame_hex": "AA55020000FFC7AC"
+      }
+    },
+    {
+      "name": "encode_payload_aa_byte",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Payload with single 0xAA — triggers byte stuffing",
+      "input": {
+        "llp_payload_hex": "00AA"
+      },
+      "expected": {
+        "frame_hex": "AA55020000AA0097A6"
+      }
+    },
+    {
+      "name": "encode_payload_aa55",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Payload with 0xAA 0x55 — magic sequence in payload",
+      "input": {
+        "llp_payload_hex": "00AA55"
+      },
+      "expected": {
+        "frame_hex": "AA55030000AA00552DE2"
+      }
+    },
+    {
+      "name": "encode_payload_triple_aa",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Three consecutive 0xAA bytes",
+      "input": {
+        "llp_payload_hex": "00AAAAAA"
+      },
+      "expected": {
+        "frame_hex": "AA55040000AA00AA00AA00722F"
+      }
+    },
+    {
+      "name": "encode_payload_mixed_aa",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Scattered 0xAA bytes with normal data",
+      "input": {
+        "llp_payload_hex": "0001AA02AA03"
+      },
+      "expected": {
+        "frame_hex": "AA5506000001AA0002AA0003DBD7"
+      }
+    },
+    {
+      "name": "encode_payload_zeros_16",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "16 zero bytes",
+      "input": {
+        "llp_payload_hex": "0000000000000000000000000000000000"
+      },
+      "expected": {
+        "frame_hex": "AA551100000000000000000000000000000000000036A3"
+      }
+    },
+    {
+      "name": "encode_payload_ones_16",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "16 bytes of 0x01",
+      "input": {
+        "llp_payload_hex": "0001010101010101010101010101010101"
+      },
+      "expected": {
+        "frame_hex": "AA551100000101010101010101010101010101010161B6"
+      }
+    },
+    {
+      "name": "encode_payload_incremental",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "16 sequential bytes 0x00..0x0F",
+      "input": {
+        "llp_payload_hex": "00000102030405060708090A0B0C0D0E0F"
+      },
+      "expected": {
+        "frame_hex": "AA55110000000102030405060708090A0B0C0D0E0F0BF2"
+      }
+    },
+    {
+      "name": "encode_payload_all_ff_16",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "16 bytes of 0xFF",
+      "input": {
+        "llp_payload_hex": "00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+      },
+      "expected": {
+        "frame_hex": "AA55110000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF77A3"
+      }
+    },
+    {
+      "name": "encode_payload_aa_prefix",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "0xAA at start of payload",
+      "input": {
+        "llp_payload_hex": "00AA42"
+      },
+      "expected": {
+        "frame_hex": "AA55030000AA0042FB80"
+      }
+    },
+    {
+      "name": "encode_payload_aa_suffix",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "0xAA at end of payload (right before CRC)",
+      "input": {
+        "llp_payload_hex": "0042AA"
+      },
+      "expected": {
+        "frame_hex": "AA5503000042AA00C665"
+      }
+    },
+    {
+      "name": "encode_payload_aa_boundary",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "0xAA sequences with 0x00 interleaved",
+      "input": {
+        "llp_payload_hex": "00AAAA00AA"
+      },
+      "expected": {
+        "frame_hex": "AA55050000AA00AA0000AA00F9F9"
+      }
+    },
+    {
+      "name": "encode_payload_alternating",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Alternating 0xAA / 0x00 pattern",
+      "input": {
+        "llp_payload_hex": "00AA00AA00AA"
+      },
+      "expected": {
+        "frame_hex": "AA55060000AA0000AA0000AA00D651"
+      }
+    },
+    {
+      "name": "encode_payload_seq_32",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "32 sequential bytes",
+      "input": {
+        "llp_payload_hex": "00000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F"
+      },
+      "expected": {
+        "frame_hex": "AA55210000000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F9845"
+      }
+    },
+    {
+      "name": "encode_payload_55_byte",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Single 0x55 byte (second magic byte in data)",
+      "input": {
+        "llp_payload_hex": "0055"
+      },
+      "expected": {
+        "frame_hex": "AA550200005567B8"
+      }
+    },
+    {
+      "name": "encode_payload_byte_0x7F",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Single 0x7F byte (max passthrough layer ID)",
+      "input": {
+        "llp_payload_hex": "007F"
+      },
+      "expected": {
+        "frame_hex": "AA550200007F4F3D"
+      }
+    },
+    {
+      "name": "encode_payload_byte_0x80",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Single 0x80 byte (min transform layer ID)",
+      "input": {
+        "llp_payload_hex": "0080"
+      },
+      "expected": {
+        "frame_hex": "AA5502000080BF23"
+      }
+    },
+    {
+      "name": "encode_payload_byte_0xFE",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Single 0xFE byte (max transform layer ID)",
+      "input": {
+        "llp_payload_hex": "00FE"
+      },
+      "expected": {
+        "frame_hex": "AA55020000FEE6BC"
+      }
+    },
+    {
+      "name": "encode_payload_ascii_test",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "4-byte ASCII 'Test'",
+      "input": {
+        "llp_payload_hex": "0054657374"
+      },
+      "expected": {
+        "frame_hex": "AA550500005465737491B9"
+      }
+    },
+    {
+      "name": "encode_payload_ascii_fox",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "The quick brown fox (20 bytes)",
+      "input": {
+        "llp_payload_hex": "0054686520717569636B2062726F776E20666F78"
+      },
+      "expected": {
+        "frame_hex": "AA5514000054686520717569636B2062726F776E20666F78BB2C"
+      }
+    },
+    {
+      "name": "encode_payload_eight_bytes",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "8 sequential bytes",
+      "input": {
+        "llp_payload_hex": "000001020304050607"
+      },
+      "expected": {
+        "frame_hex": "AA5509000000010203040506079D89"
+      }
+    },
+    {
+      "name": "encode_payload_fifteen_null",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "15 null bytes",
+      "input": {
+        "llp_payload_hex": "00000000000000000000000000000000"
+      },
+      "expected": {
+        "frame_hex": "AA55100000000000000000000000000000000000EC09"
+      }
+    },
+    {
+      "name": "encode_payload_thirty_null",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "30 null bytes",
+      "input": {
+        "llp_payload_hex": "00000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expected": {
+        "frame_hex": "AA551F00000000000000000000000000000000000000000000000000000000000000006AC1"
+      }
+    },
+    {
+      "name": "encode_payload_sixtyfour_seq",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "64 sequential bytes",
+      "input": {
+        "llp_payload_hex": "00000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F"
+      },
+      "expected": {
+        "frame_hex": "AA55410000000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F07DF"
+      }
+    },
+    {
+      "name": "encode_payload_repeated_55",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "8 bytes of 0x55",
+      "input": {
+        "llp_payload_hex": "005555555555555555"
+      },
+      "expected": {
+        "frame_hex": "AA5509000055555555555555556E3D"
+      }
+    },
+    {
+      "name": "encode_payload_aa_55_pairs",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Alternating 0xAA 0x55 pairs",
+      "input": {
+        "llp_payload_hex": "00AA55AA55AA55"
+      },
+      "expected": {
+        "frame_hex": "AA55070000AA0055AA0055AA0055FCFE"
+      }
+    },
+    {
+      "name": "encode_payload_mixed_55_aa",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Alternating 0x55 0xAA pattern",
+      "input": {
+        "llp_payload_hex": "0055AA55AA55AA55AA"
+      },
+      "expected": {
+        "frame_hex": "AA5509000055AA0055AA0055AA0055AA002313"
+      }
+    },
+    {
+      "name": "encode_payload_double_zero",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Two consecutive 0x00 bytes",
+      "input": {
+        "llp_payload_hex": "000000"
+      },
+      "expected": {
+        "frame_hex": "AA550300000000C81A"
+      }
+    },
+    {
+      "name": "encode_payload_ten_AS",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "10 bytes of ASCII 'A'",
+      "input": {
+        "llp_payload_hex": "0041414141414141414141"
+      },
+      "expected": {
+        "frame_hex": "AA550B00004141414141414141414125FF"
+      }
+    },
+    {
+      "name": "decode_empty_payload",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Empty application payload — only FinalNode marker (0x00)",
+      "input": {
+        "frame_hex": "AA550100008883"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00"
+      }
+    },
+    {
+      "name": "decode_single_byte_42",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Single byte payload (0x42) — minimum non-empty frame",
+      "input": {
+        "frame_hex": "AA5502000042B1DA"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0042"
+      }
+    },
+    {
+      "name": "decode_hello_world",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 5-byte ASCII payload 'Hello'",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F3798"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0048656C6C6F"
+      }
+    },
+    {
+      "name": "decode_payload_null_byte",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Payload containing a single 0x00 byte",
+      "input": {
+        "frame_hex": "AA550200000037B2"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0000"
+      }
+    },
+    {
+      "name": "decode_payload_ff_byte",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Payload containing a single 0xFF byte",
+      "input": {
+        "frame_hex": "AA55020000FFC7AC"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00FF"
+      }
+    },
+    {
+      "name": "decode_payload_aa_byte",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Payload with single 0xAA — triggers byte stuffing",
+      "input": {
+        "frame_hex": "AA55020000AA0097A6"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00AA"
+      }
+    },
+    {
+      "name": "decode_payload_aa55",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Payload with 0xAA 0x55 — magic sequence in payload",
+      "input": {
+        "frame_hex": "AA55030000AA00552DE2"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00AA55"
+      }
+    },
+    {
+      "name": "decode_payload_triple_aa",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Three consecutive 0xAA bytes",
+      "input": {
+        "frame_hex": "AA55040000AA00AA00AA00722F"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00AAAAAA"
+      }
+    },
+    {
+      "name": "decode_payload_mixed_aa",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Scattered 0xAA bytes with normal data",
+      "input": {
+        "frame_hex": "AA5506000001AA0002AA0003DBD7"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0001AA02AA03"
+      }
+    },
+    {
+      "name": "decode_payload_zeros_16",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 16 zero bytes",
+      "input": {
+        "frame_hex": "AA551100000000000000000000000000000000000036A3"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0000000000000000000000000000000000"
+      }
+    },
+    {
+      "name": "decode_payload_ones_16",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 16 bytes of 0x01",
+      "input": {
+        "frame_hex": "AA551100000101010101010101010101010101010161B6"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0001010101010101010101010101010101"
+      }
+    },
+    {
+      "name": "decode_payload_incremental",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 16 sequential bytes 0x00..0x0F",
+      "input": {
+        "frame_hex": "AA55110000000102030405060708090A0B0C0D0E0F0BF2"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00000102030405060708090A0B0C0D0E0F"
+      }
+    },
+    {
+      "name": "decode_payload_all_ff_16",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 16 bytes of 0xFF",
+      "input": {
+        "frame_hex": "AA55110000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF77A3"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+      }
+    },
+    {
+      "name": "decode_payload_aa_prefix",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 0xAA at start of payload",
+      "input": {
+        "frame_hex": "AA55030000AA0042FB80"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00AA42"
+      }
+    },
+    {
+      "name": "decode_payload_aa_suffix",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 0xAA at end of payload (right before CRC)",
+      "input": {
+        "frame_hex": "AA5503000042AA00C665"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0042AA"
+      }
+    },
+    {
+      "name": "decode_payload_aa_boundary",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 0xAA sequences with 0x00 interleaved",
+      "input": {
+        "frame_hex": "AA55050000AA00AA0000AA00F9F9"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00AAAA00AA"
+      }
+    },
+    {
+      "name": "decode_payload_alternating",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Alternating 0xAA / 0x00 pattern",
+      "input": {
+        "frame_hex": "AA55060000AA0000AA0000AA00D651"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00AA00AA00AA"
+      }
+    },
+    {
+      "name": "decode_payload_seq_32",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 32 sequential bytes",
+      "input": {
+        "frame_hex": "AA55210000000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F9845"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F"
+      }
+    },
+    {
+      "name": "decode_payload_55_byte",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Single 0x55 byte (second magic byte in data)",
+      "input": {
+        "frame_hex": "AA550200005567B8"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0055"
+      }
+    },
+    {
+      "name": "decode_payload_byte_0x7F",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Single 0x7F byte (max passthrough layer ID)",
+      "input": {
+        "frame_hex": "AA550200007F4F3D"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "007F"
+      }
+    },
+    {
+      "name": "decode_payload_byte_0x80",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Single 0x80 byte (min transform layer ID)",
+      "input": {
+        "frame_hex": "AA5502000080BF23"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0080"
+      }
+    },
+    {
+      "name": "decode_payload_byte_0xFE",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Single 0xFE byte (max transform layer ID)",
+      "input": {
+        "frame_hex": "AA55020000FEE6BC"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00FE"
+      }
+    },
+    {
+      "name": "decode_payload_ascii_test",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 4-byte ASCII 'Test'",
+      "input": {
+        "frame_hex": "AA550500005465737491B9"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0054657374"
+      }
+    },
+    {
+      "name": "decode_payload_ascii_fox",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — The quick brown fox (20 bytes)",
+      "input": {
+        "frame_hex": "AA5514000054686520717569636B2062726F776E20666F78BB2C"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0054686520717569636B2062726F776E20666F78"
+      }
+    },
+    {
+      "name": "decode_payload_eight_bytes",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 8 sequential bytes",
+      "input": {
+        "frame_hex": "AA5509000000010203040506079D89"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "000001020304050607"
+      }
+    },
+    {
+      "name": "decode_payload_fifteen_null",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 15 null bytes",
+      "input": {
+        "frame_hex": "AA55100000000000000000000000000000000000EC09"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00000000000000000000000000000000"
+      }
+    },
+    {
+      "name": "decode_payload_thirty_null",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 30 null bytes",
+      "input": {
+        "frame_hex": "AA551F00000000000000000000000000000000000000000000000000000000000000006AC1"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "name": "decode_payload_sixtyfour_seq",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 64 sequential bytes",
+      "input": {
+        "frame_hex": "AA55410000000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F07DF"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F"
+      }
+    },
+    {
+      "name": "decode_payload_repeated_55",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 8 bytes of 0x55",
+      "input": {
+        "frame_hex": "AA5509000055555555555555556E3D"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "005555555555555555"
+      }
+    },
+    {
+      "name": "decode_payload_aa_55_pairs",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Alternating 0xAA 0x55 pairs",
+      "input": {
+        "frame_hex": "AA55070000AA0055AA0055AA0055FCFE"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00AA55AA55AA55"
+      }
+    },
+    {
+      "name": "decode_payload_mixed_55_aa",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Alternating 0x55 0xAA pattern",
+      "input": {
+        "frame_hex": "AA5509000055AA0055AA0055AA0055AA002313"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0055AA55AA55AA55AA"
+      }
+    },
+    {
+      "name": "decode_payload_double_zero",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — Two consecutive 0x00 bytes",
+      "input": {
+        "frame_hex": "AA550300000000C81A"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "000000"
+      }
+    },
+    {
+      "name": "decode_payload_ten_AS",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse valid frame — 10 bytes of ASCII 'A'",
+      "input": {
+        "frame_hex": "AA550B00004141414141414141414125FF"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0041414141414141414141"
+      }
+    },
+    {
+      "name": "stream_two_empty",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Two empty frames back-to-back",
+      "input": {
+        "chunks_hex": [
+          "AA550100008883AA550100008883"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    },
+    {
+      "name": "stream_empty_then_hello",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Empty then hello frame concatenated",
+      "input": {
+        "chunks_hex": [
+          "AA550100008883AA5506000048656C6C6F3798"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "0048656C6C6F"
+          }
+        ]
+      }
+    },
+    {
+      "name": "stream_three_mixed",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Three frames: aa_byte, empty, hello",
+      "input": {
+        "chunks_hex": [
+          "AA55020000AA0097A6AA550100008883AA5506000048656C6C6F3798"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00AA"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "0048656C6C6F"
+          }
+        ]
+      }
+    }
+  ]
+}

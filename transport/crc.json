@@ -1,0 +1,399 @@
+{
+  "spec_version": "3.1.0",
+  "category": "transport_crc",
+  "description": "Invalid CRC: bit flips, byte swaps, all-zeros/ones, wrong frame CRC, payload corruption",
+  "vectors": [
+    {
+      "name": "corrupted_last_byte_empty_payload",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — Empty application payload — only FinalNode marker (0x00)",
+      "input": {
+        "frame_hex": "AA55010000887C"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_single_byte_42",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — Single byte payload (0x42) — minimum non-empty frame",
+      "input": {
+        "frame_hex": "AA5502000042B125"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_hello_world",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — 5-byte ASCII payload 'Hello'",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F3767"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_payload_null_byte",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — Payload containing a single 0x00 byte",
+      "input": {
+        "frame_hex": "AA5502000000374D"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_payload_ff_byte",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — Payload containing a single 0xFF byte",
+      "input": {
+        "frame_hex": "AA55020000FFC753"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_payload_aa_byte",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — Payload with single 0xAA — triggers byte stuffing",
+      "input": {
+        "frame_hex": "AA55020000AA009759"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_payload_aa55",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — Payload with 0xAA 0x55 — magic sequence in payload",
+      "input": {
+        "frame_hex": "AA55030000AA00552D1D"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_payload_triple_aa",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — Three consecutive 0xAA bytes",
+      "input": {
+        "frame_hex": "AA55040000AA00AA00AA0072D0"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_payload_mixed_aa",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — Scattered 0xAA bytes with normal data",
+      "input": {
+        "frame_hex": "AA5506000001AA0002AA0003DB28"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_payload_zeros_16",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — 16 zero bytes",
+      "input": {
+        "frame_hex": "AA5511000000000000000000000000000000000000365C"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_payload_ones_16",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — 16 bytes of 0x01",
+      "input": {
+        "frame_hex": "AA55110000010101010101010101010101010101016149"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_payload_incremental",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — 16 sequential bytes 0x00..0x0F",
+      "input": {
+        "frame_hex": "AA55110000000102030405060708090A0B0C0D0E0F0B0D"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_payload_all_ff_16",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — 16 bytes of 0xFF",
+      "input": {
+        "frame_hex": "AA55110000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF775C"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_last_byte_payload_aa_prefix",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC last byte flipped — 0xAA at start of payload",
+      "input": {
+        "frame_hex": "AA55030000AA0042FB7F"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_both_crc_bytes",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Both CRC bytes flipped",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6FC867"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_all_zero",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC field set to 0x0000",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F0000"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_all_ones",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC field set to 0xFFFF",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6FFFFF"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_bit_flip_pos_0",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Single bit flip at position 0 in CRC low byte",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F3698"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_bit_flip_pos_1",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Single bit flip at position 1 in CRC low byte",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F3598"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_bit_flip_pos_2",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Single bit flip at position 2 in CRC low byte",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F3398"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_bit_flip_pos_3",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Single bit flip at position 3 in CRC low byte",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F3F98"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_bit_flip_pos_4",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Single bit flip at position 4 in CRC low byte",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F2798"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_bit_flip_pos_5",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Single bit flip at position 5 in CRC low byte",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F1798"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_bit_flip_pos_6",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Single bit flip at position 6 in CRC low byte",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F7798"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_bit_flip_pos_7",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Single bit flip at position 7 in CRC low byte",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6FB798"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_from_different_frame",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC bytes copied from a different frame",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6FB1DA"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "crc_swapped_bytes",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "CRC bytes in wrong byte order",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F9837"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    },
+    {
+      "name": "corrupted_payload_byte",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "One payload byte flipped — CRC mismatch",
+      "input": {
+        "frame_hex": "AA55060000489A6C6C6F3798"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "CHECKSUM"
+      }
+    }
+  ]
+}

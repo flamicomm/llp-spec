@@ -1,0 +1,322 @@
+{
+  "spec_version": "3.1.0",
+  "category": "transport_timeout",
+  "description": "Timeout behaviour: mid-frame, between frames, and recovery after timeout",
+  "vectors": [
+    {
+      "name": "timeout_mid_frame",
+      "type": "timing",
+      "result": "invalid",
+      "flags": [],
+      "description": "Timeout in middle of receiving a frame",
+      "config": {
+        "timeout_ms": 2000
+      },
+      "input": {
+        "events": [
+          {
+            "byte_hex": "AA",
+            "time_ms": 0
+          },
+          {
+            "byte_hex": "55",
+            "time_ms": 1
+          },
+          {
+            "byte_hex": "06",
+            "time_ms": 2
+          },
+          {
+            "byte_hex": "00",
+            "time_ms": 5000
+          }
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "ERROR",
+            "error_code": "TIMEOUT"
+          }
+        ]
+      }
+    },
+    {
+      "name": "timeout_then_valid_frame",
+      "type": "timing",
+      "result": "valid",
+      "flags": [
+        "Slow"
+      ],
+      "description": "Timeout then complete valid frame arrives after reset",
+      "config": {
+        "timeout_ms": 2000
+      },
+      "input": {
+        "events": [
+          {
+            "byte_hex": "AA",
+            "time_ms": 0
+          },
+          {
+            "byte_hex": "55",
+            "time_ms": 1
+          },
+          {
+            "byte_hex": "AA",
+            "time_ms": 5000
+          },
+          {
+            "byte_hex": "55",
+            "time_ms": 5001
+          },
+          {
+            "byte_hex": "01",
+            "time_ms": 5002
+          },
+          {
+            "byte_hex": "00",
+            "time_ms": 5003
+          },
+          {
+            "byte_hex": "00",
+            "time_ms": 5004
+          },
+          {
+            "byte_hex": "88",
+            "time_ms": 5005
+          },
+          {
+            "byte_hex": "83",
+            "time_ms": 5006
+          }
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "ERROR",
+            "error_code": "TIMEOUT"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    },
+    {
+      "name": "timeout_between_frames",
+      "type": "timing",
+      "result": "valid",
+      "flags": [
+        "Slow"
+      ],
+      "description": "Timeout gap between two valid frames — both received",
+      "config": {
+        "timeout_ms": 2000
+      },
+      "input": {
+        "events": [
+          {
+            "byte_hex": "AA",
+            "time_ms": 0
+          },
+          {
+            "byte_hex": "55",
+            "time_ms": 1
+          },
+          {
+            "byte_hex": "01",
+            "time_ms": 2
+          },
+          {
+            "byte_hex": "00",
+            "time_ms": 3
+          },
+          {
+            "byte_hex": "00",
+            "time_ms": 4
+          },
+          {
+            "byte_hex": "88",
+            "time_ms": 5
+          },
+          {
+            "byte_hex": "83",
+            "time_ms": 6
+          },
+          {
+            "byte_hex": "AA",
+            "time_ms": 5000
+          },
+          {
+            "byte_hex": "55",
+            "time_ms": 5001
+          },
+          {
+            "byte_hex": "01",
+            "time_ms": 5002
+          },
+          {
+            "byte_hex": "00",
+            "time_ms": 5003
+          },
+          {
+            "byte_hex": "00",
+            "time_ms": 5004
+          },
+          {
+            "byte_hex": "88",
+            "time_ms": 5005
+          },
+          {
+            "byte_hex": "83",
+            "time_ms": 5006
+          }
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    },
+    {
+      "name": "timeout_during_second_of_two",
+      "type": "timing",
+      "result": "invalid",
+      "flags": [
+        "Slow"
+      ],
+      "description": "First frame OK, then timeout during second frame",
+      "config": {
+        "timeout_ms": 2000
+      },
+      "input": {
+        "events": [
+          {
+            "byte_hex": "AA",
+            "time_ms": 0
+          },
+          {
+            "byte_hex": "55",
+            "time_ms": 1
+          },
+          {
+            "byte_hex": "01",
+            "time_ms": 2
+          },
+          {
+            "byte_hex": "00",
+            "time_ms": 3
+          },
+          {
+            "byte_hex": "00",
+            "time_ms": 4
+          },
+          {
+            "byte_hex": "88",
+            "time_ms": 5
+          },
+          {
+            "byte_hex": "83",
+            "time_ms": 6
+          },
+          {
+            "byte_hex": "AA",
+            "time_ms": 7
+          },
+          {
+            "byte_hex": "55",
+            "time_ms": 8000
+          }
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          },
+          {
+            "type": "ERROR",
+            "error_code": "TIMEOUT"
+          }
+        ]
+      }
+    },
+    {
+      "name": "timeout_then_aa_triggers_resync",
+      "type": "timing",
+      "result": "acceptable",
+      "flags": [
+        "OptionalBehavior",
+        "Slow"
+      ],
+      "description": "Timeout on 0xAA triggers optimistic resync instead of discarding byte",
+      "config": {
+        "timeout_ms": 2000
+      },
+      "input": {
+        "events": [
+          {
+            "byte_hex": "AA",
+            "time_ms": 0
+          },
+          {
+            "byte_hex": "55",
+            "time_ms": 1
+          },
+          {
+            "byte_hex": "AA",
+            "time_ms": 5000
+          },
+          {
+            "byte_hex": "55",
+            "time_ms": 5001
+          },
+          {
+            "byte_hex": "01",
+            "time_ms": 5002
+          },
+          {
+            "byte_hex": "00",
+            "time_ms": 5003
+          },
+          {
+            "byte_hex": "00",
+            "time_ms": 5004
+          },
+          {
+            "byte_hex": "88",
+            "time_ms": 5005
+          },
+          {
+            "byte_hex": "83",
+            "time_ms": 5006
+          }
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "ERROR",
+            "error_code": "TIMEOUT"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    }
+  ]
+}

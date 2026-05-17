@@ -1,208 +1,128 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/anomalyco/llp-spec/schema/vector.schema.json",
-  "title": "LLP Test Vector Schema v3.0.0",
-  "description": "Schema for LLP (Layered Link Protocol) official test vectors",
+  "$id": "https://github.com/flamicomm/llp-spec/schema/vector.schema.json",
+  "$comment": "Version 1.1.0 — added Slow flag for timing vectors",
+  "title": "LLP Test Vector File",
+  "version": "1.1.0",
+  "description": "Schema for grouped LLP (Layered Link Protocol) official test vectors. Schema version is independent of protocol spec_version.",
   "type": "object",
+  "required": ["spec_version", "category", "description", "vectors"],
+  "additionalProperties": false,
   "definitions": {
     "hex_string": {
       "type": "string",
-      "pattern": "^[0-9A-F]*$",
-      "description": "Uppercase hex-encoded binary data (even length, may be empty)"
+      "pattern": "^[0-9A-F]*$"
     },
     "byte_hex": {
       "type": "string",
-      "pattern": "^[0-9A-F]{2}$",
-      "description": "Exactly two uppercase hex characters representing one byte"
+      "pattern": "^[0-9A-F]{2}$"
     },
     "error_code": {
       "type": "string",
-      "enum": ["CHECKSUM", "TIMEOUT", "SYNC_ERROR", "PAYLOAD_LEN_INVALID", "BUFFER_FULL"],
-      "description": "Machine-readable error code returned by the parser"
+      "enum": ["CHECKSUM", "TIMEOUT", "SYNC_ERROR", "PAYLOAD_LEN_INVALID", "BUFFER_FULL", "LAYER_MALFORMED", "TRANSFORM_NO_HANDLER"]
     },
-    "result_type": {
+    "result_value": {
       "type": "string",
-      "enum": ["FRAME", "ERROR", "INCOMPLETE", "NONE"],
-      "description": "Frame parsing outcome"
+      "enum": ["valid", "invalid", "acceptable"]
+    },
+    "flag": {
+      "type": "string",
+      "enum": ["OptionalBehavior", "EdgeCase", "ImplementationDefined", "Deprecated", "Slow"]
+    },
+    "frame_event": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": { "type": { "const": "FRAME" }, "payload_hex": { "$ref": "#/definitions/hex_string" } },
+          "required": ["type", "payload_hex"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "type": { "const": "ERROR" }, "error_code": { "$ref": "#/definitions/error_code" } },
+          "required": ["type", "error_code"],
+          "additionalProperties": false
+        }
+      ]
     }
   },
-  "oneOf": [
-    {
-      "properties": {
-        "spec_version": {
-          "description": "Semantic version of the LLP specification",
-          "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "type": {
-          "description": "Category of test vector",
-          "type": "string",
-          "enum": ["encode", "decode", "stream", "timing"]
-        },
-        "name": {
-          "description": "Unique identifier for this test vector (matches filename)",
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "description": {
-          "description": "Human-readable explanation of what this vector tests",
-          "type": "string"
-        }
-      },
-      "required": ["spec_version", "type", "name", "description"]
-    },
-    {
-      "if": {"properties": {"type": {"const": "encode"}}},
-      "then": {
+  "properties": {
+    "spec_version": { "type": "string", "const": "3.1.0" },
+    "category": { "type": "string", "pattern": "^[a-z][a-zA-Z0-9_]*$" },
+    "description": { "type": "string", "minLength": 5 },
+    "vectors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "result", "description", "flags", "input", "expected"],
         "properties": {
-          "input": {
-            "type": "object",
-            "properties": {
-              "llp_payload_hex": {
-                "$ref": "#/definitions/hex_string",
-                "description": "Layer chain bytes that go between length and CRC (includes layer headers + FinalNode + raw data)"
+          "name": { "type": "string", "pattern": "^[a-z][a-zA-Z0-9_]*$" },
+          "type": { "type": "string", "enum": ["encode", "decode", "stream", "timing", "traversal"] },
+          "result": { "$ref": "#/definitions/result_value" },
+          "description": { "type": "string", "minLength": 5 },
+          "flags": { "type": "array", "items": { "$ref": "#/definitions/flag" } },
+          "config": { "type": "object" },
+          "input": { "type": "object" },
+          "expected": { "type": "object" }
+        },
+        "additionalProperties": false,
+        "allOf": [
+          { "if": { "properties": { "type": { "const": "encode" } } },
+            "then": {
+              "properties": {
+                "input": { "type": "object", "required": ["llp_payload_hex"], "properties": { "llp_payload_hex": { "$ref": "#/definitions/hex_string" } }, "additionalProperties": false },
+                "expected": { "type": "object", "required": ["frame_hex"], "properties": { "frame_hex": { "$ref": "#/definitions/hex_string" } }, "additionalProperties": false }
               }
-            },
-            "required": ["llp_payload_hex"],
-            "additionalProperties": false
+            }
           },
-          "expected": {
-            "type": "object",
-            "properties": {
-              "frame_hex": {
-                "$ref": "#/definitions/hex_string",
-                "description": "Complete LLP transport frame including magic, length, stuffed payload, and stuffed CRC"
-              }
-            },
-            "required": ["frame_hex"],
-            "additionalProperties": false
-          }
-        },
-        "required": ["input", "expected"]
-      }
-    },
-    {
-      "if": {"properties": {"type": {"const": "decode"}}},
-      "then": {
-        "properties": {
-          "input": {
-            "type": "object",
-            "properties": {
-              "frame_hex": {"$ref": "#/definitions/hex_string"}
-            },
-            "required": ["frame_hex"],
-            "additionalProperties": false
-          },
-          "expected": {
-            "type": "object",
-            "properties": {
-              "result": {"$ref": "#/definitions/result_type"},
-              "payload_hex": {"$ref": "#/definitions/hex_string"},
-              "error_code": {"$ref": "#/definitions/error_code"}
-            },
-            "required": ["result"],
-            "additionalProperties": false
-          }
-        },
-        "required": ["input", "expected"]
-      }
-    },
-    {
-      "if": {"properties": {"type": {"const": "stream"}}},
-      "then": {
-        "properties": {
-          "input": {
-            "type": "object",
-            "properties": {
-              "chunks_hex": {
-                "type": "array",
-                "items": {"$ref": "#/definitions/hex_string"},
-                "description": "Ordered list of byte chunks fed sequentially to the parser"
-              }
-            },
-            "required": ["chunks_hex"],
-            "additionalProperties": false
-          },
-          "expected": {
-            "type": "object",
-            "properties": {
-              "events": {
-                "type": "array",
-                "items": {
-                  "oneOf": [
-                    {
-                      "type": "object",
-                      "properties": {
-                        "type": {"const": "FRAME"},
-                        "payload_hex": {"$ref": "#/definitions/hex_string"}
-                      },
-                      "required": ["type", "payload_hex"],
-                      "additionalProperties": false
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "type": {"const": "ERROR"},
-                        "error_code": {"$ref": "#/definitions/error_code"}
-                      },
-                      "required": ["type", "error_code"],
-                      "additionalProperties": false
-                    }
-                  ]
-                },
-                "description": "Ordered list of events emitted by the parser"
-              }
-            },
-            "required": ["events"],
-            "additionalProperties": false
-          }
-        },
-        "required": ["input", "expected"]
-      }
-    },
-    {
-      "if": {"properties": {"type": {"const": "timing"}}},
-      "then": {
-        "properties": {
-          "input": {
-            "type": "object",
-            "properties": {
-              "events": {
-                "type": "array",
-                "items": {
-                  "type": "object",
+          { "if": { "properties": { "type": { "const": "decode" } } },
+            "then": {
+              "properties": {
+                "input": { "type": "object", "required": ["frame_hex"], "properties": { "frame_hex": { "$ref": "#/definitions/hex_string" } }, "additionalProperties": false },
+                "expected": {
+                  "type": "object", "required": ["outcome"],
                   "properties": {
-                    "byte_hex": {"$ref": "#/definitions/byte_hex"},
-                    "time_ms": {"type": "integer", "minimum": 0}
+                    "outcome": { "type": "string", "enum": ["FRAME", "ERROR", "NONE"] },
+                    "payload_hex": { "$ref": "#/definitions/hex_string" },
+                    "error_code": { "$ref": "#/definitions/error_code" },
+                    "crc_hex": { "type": "string", "pattern": "^[0-9A-F]{4}$" }
                   },
-                  "required": ["byte_hex", "time_ms"],
                   "additionalProperties": false
-                },
-                "description": "Ordered list of byte arrival events with timestamps"
-              }
-            },
-            "required": ["events"],
-            "additionalProperties": false
-          },
-          "expected": {
-            "type": "object",
-            "properties": {
-              "events": {
-                "type": "array",
-                "items": {
-                  "oneOf": [
-                    {"type": "object", "properties": {"type": {"const": "FRAME"}, "payload_hex": {"$ref": "#/definitions/hex_string"}}, "required": ["type", "payload_hex"], "additionalProperties": false},
-                    {"type": "object", "properties": {"type": {"const": "ERROR"}, "error_code": {"$ref": "#/definitions/error_code"}}, "required": ["type", "error_code"], "additionalProperties": false}
-                  ]
                 }
               }
-            },
-            "required": ["events"],
-            "additionalProperties": false
+            }
+          },
+          { "if": { "properties": { "type": { "const": "stream" } } },
+            "then": {
+              "properties": {
+                "input": { "type": "object", "required": ["chunks_hex"], "properties": { "chunks_hex": { "type": "array", "items": { "$ref": "#/definitions/hex_string" } } }, "additionalProperties": false },
+                "expected": { "type": "object", "required": ["events"], "properties": { "events": { "type": "array", "items": { "$ref": "#/definitions/frame_event" } } }, "additionalProperties": false }
+              }
+            }
+          },
+          { "if": { "properties": { "type": { "const": "timing" } } },
+            "then": {
+              "required": ["config"],
+              "properties": {
+                "config": { "type": "object", "required": ["timeout_ms"], "properties": { "timeout_ms": { "type": "integer", "minimum": 1 } }, "additionalProperties": false },
+                "input": { "type": "object", "required": ["events"], "properties": { "events": { "type": "array", "items": { "type": "object", "required": ["byte_hex", "time_ms"], "properties": { "byte_hex": { "$ref": "#/definitions/byte_hex" }, "time_ms": { "type": "integer", "minimum": 0 } }, "additionalProperties": false } } }, "additionalProperties": false },
+                "expected": { "type": "object", "required": ["events"], "properties": { "events": { "type": "array", "items": { "$ref": "#/definitions/frame_event" } } }, "additionalProperties": false }
+              }
+            }
+          },
+          { "if": { "properties": { "type": { "const": "traversal" } } },
+            "then": {
+              "properties": {
+                "input": { "type": "object", "required": ["frame_hex"], "properties": { "frame_hex": { "$ref": "#/definitions/hex_string" } }, "additionalProperties": false },
+                "expected": { "type": "object", "required": ["outcome"], "properties": { "outcome": { "type": "string", "enum": ["FRAME", "ERROR", "NONE"] }, "final_payload_hex": { "$ref": "#/definitions/hex_string" }, "error_code": { "$ref": "#/definitions/error_code" } }, "additionalProperties": false }
+              }
+            }
           }
-        },
-        "required": ["input", "expected"]
+        ],
+        "if": { "properties": { "result": { "const": "acceptable" } } },
+        "then": { "properties": { "flags": { "minItems": 1 } } }
       }
     }
-  ]
+  }
 }

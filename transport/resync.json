@@ -1,0 +1,183 @@
+{
+  "spec_version": "3.1.0",
+  "category": "transport_resync",
+  "description": "Resynchronisation: noise, corruption, invalid escapes, and recovery",
+  "vectors": [
+    {
+      "name": "noise_before_frame",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Noise (0xFF) before valid frame — parser discards noise",
+      "input": {
+        "chunks_hex": [
+          "FFFFFFAA550100008883"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    },
+    {
+      "name": "noise_between_frames",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Two valid frames with noise between them",
+      "input": {
+        "chunks_hex": [
+          "AA550100008883DEADAA5506000048656C6C6F3798"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "0048656C6C6F"
+          }
+        ]
+      }
+    },
+    {
+      "name": "corrupt_magic1",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "First magic byte corrupted — parser resyncs",
+      "input": {
+        "chunks_hex": [
+          "BB550100008883AA550100008883"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    },
+    {
+      "name": "corrupt_magic2",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Second magic byte corrupted — parser resyncs",
+      "input": {
+        "chunks_hex": [
+          "AA440100008883AA550100008883"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    },
+    {
+      "name": "aa_in_payload_no_false_resync",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Stuffing hides 0xAA bytes — parser does not false-resync",
+      "input": {
+        "chunks_hex": [
+          "AA55020000AA0097A6"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00AA"
+          }
+        ]
+      }
+    },
+    {
+      "name": "aa55_in_payload_no_false_resync",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "0xAA 0x55 in payload is stuffed — parser does not split frame",
+      "input": {
+        "chunks_hex": [
+          "AA55030000AA00552DE2"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00AA55"
+          }
+        ]
+      }
+    },
+    {
+      "name": "invalid_escape_then_valid",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Invalid escape then valid frame — parser recovers with SYNC_ERROR",
+      "input": {
+        "chunks_hex": [
+          "AA55020000AA9997A6AA550100008883"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "ERROR",
+            "error_code": "SYNC_ERROR"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    },
+    {
+      "name": "garbage_three_frames",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Garbage between three valid frames — stress resync",
+      "input": {
+        "chunks_hex": [
+          "AA550100008883FFAA5506000048656C6C6F3798AABBAA550100008883"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "0048656C6C6F"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          }
+        ]
+      }
+    }
+  ]
+}

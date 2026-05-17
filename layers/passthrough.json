@@ -1,0 +1,460 @@
+{
+  "spec_version": "3.1.0",
+  "category": "layers_passthrough",
+  "description": "Passthrough layer chains: FinalNode, single/multiple passthrough, metadata variants, unknown IDs",
+  "vectors": [
+    {
+      "name": "encode_empty_chain",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Only FinalNode, no raw data",
+      "input": {
+        "llp_payload_hex": "00"
+      },
+      "expected": {
+        "frame_hex": "AA550100008883"
+      }
+    },
+    {
+      "name": "decode_empty_chain",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Only FinalNode, no raw data",
+      "input": {
+        "frame_hex": "AA550100008883"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00"
+      }
+    },
+    {
+      "name": "encode_final_then_ff",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — FinalNode then a single 0xFF byte",
+      "input": {
+        "llp_payload_hex": "00FF"
+      },
+      "expected": {
+        "frame_hex": "AA55020000FFC7AC"
+      }
+    },
+    {
+      "name": "decode_final_then_ff",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — FinalNode then a single 0xFF byte",
+      "input": {
+        "frame_hex": "AA55020000FFC7AC"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00FF"
+      }
+    },
+    {
+      "name": "encode_final_then_aa55",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — FinalNode then 0xAA 0x55 (magic overlap)",
+      "input": {
+        "llp_payload_hex": "00AA55"
+      },
+      "expected": {
+        "frame_hex": "AA55030000AA00552DE2"
+      }
+    },
+    {
+      "name": "decode_final_then_aa55",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — FinalNode then 0xAA 0x55 (magic overlap)",
+      "input": {
+        "frame_hex": "AA55030000AA00552DE2"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00AA55"
+      }
+    },
+    {
+      "name": "encode_final_hello",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — FinalNode then 'Hello'",
+      "input": {
+        "llp_payload_hex": "0048656C6C6F"
+      },
+      "expected": {
+        "frame_hex": "AA5506000048656C6C6F3798"
+      }
+    },
+    {
+      "name": "decode_final_hello",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — FinalNode then 'Hello'",
+      "input": {
+        "frame_hex": "AA5506000048656C6C6F3798"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0048656C6C6F"
+      }
+    },
+    {
+      "name": "encode_single_passthrough",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Passthrough (0x01) with 3 bytes metadata + FinalNode + 'Hello'",
+      "input": {
+        "llp_payload_hex": "01031020300048656C6C6F"
+      },
+      "expected": {
+        "frame_hex": "AA550B0001031020300048656C6C6F6191"
+      }
+    },
+    {
+      "name": "decode_single_passthrough",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Passthrough (0x01) with 3 bytes metadata + FinalNode + 'Hello'",
+      "input": {
+        "frame_hex": "AA550B0001031020300048656C6C6F6191"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "01031020300048656C6C6F"
+      }
+    },
+    {
+      "name": "encode_two_passthrough",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Two passthrough layers (0x01, 0x02) with metadata containing 0xAA",
+      "input": {
+        "llp_payload_hex": "0101AA0202BBCC0042"
+      },
+      "expected": {
+        "frame_hex": "AA5509000101AA000202BBCC0042822E"
+      }
+    },
+    {
+      "name": "decode_two_passthrough",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Two passthrough layers (0x01, 0x02) with metadata containing 0xAA",
+      "input": {
+        "frame_hex": "AA5509000101AA000202BBCC0042822E"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0101AA0202BBCC0042"
+      }
+    },
+    {
+      "name": "encode_unknown_layer_id",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Unknown layer ID (0xFF) with metadata + FinalNode + 'data'",
+      "input": {
+        "llp_payload_hex": "FF01000064617461"
+      },
+      "expected": {
+        "frame_hex": "AA550800FF010000646174615B24"
+      }
+    },
+    {
+      "name": "decode_unknown_layer_id",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Unknown layer ID (0xFF) with metadata + FinalNode + 'data'",
+      "input": {
+        "frame_hex": "AA550800FF010000646174615B24"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "FF01000064617461"
+      }
+    },
+    {
+      "name": "encode_max_passthrough",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Max passthrough layer ID (0x7F) with metadata + FinalNode + 'xyz'",
+      "input": {
+        "llp_payload_hex": "7F02F00F0078797A"
+      },
+      "expected": {
+        "frame_hex": "AA5508007F02F00F0078797ACA6E"
+      }
+    },
+    {
+      "name": "decode_max_passthrough",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Max passthrough layer ID (0x7F) with metadata + FinalNode + 'xyz'",
+      "input": {
+        "frame_hex": "AA5508007F02F00F0078797ACA6E"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "7F02F00F0078797A"
+      }
+    },
+    {
+      "name": "encode_max_transform",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Max transform layer ID (0xFE) with metadata + FinalNode + raw bytes",
+      "input": {
+        "llp_payload_hex": "FE01A500010203"
+      },
+      "expected": {
+        "frame_hex": "AA550700FE01A5000102030750"
+      }
+    },
+    {
+      "name": "decode_max_transform",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Max transform layer ID (0xFE) with metadata + FinalNode + raw bytes",
+      "input": {
+        "frame_hex": "AA550700FE01A5000102030750"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "FE01A500010203"
+      }
+    },
+    {
+      "name": "encode_three_nested",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Three nested passthrough layers before FinalNode + 'deep'",
+      "input": {
+        "llp_payload_hex": "0101010201020301030064656570"
+      },
+      "expected": {
+        "frame_hex": "AA550E000101010201020301030064656570F451"
+      }
+    },
+    {
+      "name": "decode_three_nested",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Three nested passthrough layers before FinalNode + 'deep'",
+      "input": {
+        "frame_hex": "AA550E000101010201020301030064656570F451"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0101010201020301030064656570"
+      }
+    },
+    {
+      "name": "encode_stuffing_metadata",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Layer metadata containing 0xAA and 0x55",
+      "input": {
+        "llp_payload_hex": "0104AA00AA55004F4B"
+      },
+      "expected": {
+        "frame_hex": "AA5509000104AA0000AA0055004F4BC83C"
+      }
+    },
+    {
+      "name": "decode_stuffing_metadata",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Layer metadata containing 0xAA and 0x55",
+      "input": {
+        "frame_hex": "AA5509000104AA0000AA0055004F4BC83C"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0104AA00AA55004F4B"
+      }
+    },
+    {
+      "name": "encode_zero_meta_len",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Passthrough layer with meta_len=0 + FinalNode + 'data'",
+      "input": {
+        "llp_payload_hex": "01000064617461"
+      },
+      "expected": {
+        "frame_hex": "AA55070001000064617461B65F"
+      }
+    },
+    {
+      "name": "decode_zero_meta_len",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Passthrough layer with meta_len=0 + FinalNode + 'data'",
+      "input": {
+        "frame_hex": "AA55070001000064617461B65F"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "01000064617461"
+      }
+    },
+    {
+      "name": "encode_four_nested",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Four nested passthrough layers + FinalNode + 'end'",
+      "input": {
+        "llp_payload_hex": "010002000300040000656E64"
+      },
+      "expected": {
+        "frame_hex": "AA550C00010002000300040000656E643755"
+      }
+    },
+    {
+      "name": "decode_four_nested",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Four nested passthrough layers + FinalNode + 'end'",
+      "input": {
+        "frame_hex": "AA550C00010002000300040000656E643755"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "010002000300040000656E64"
+      }
+    },
+    {
+      "name": "encode_passthrough_7F_zero",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Passthrough 0x7F with meta_len=0 + FinalNode + 'AB'",
+      "input": {
+        "llp_payload_hex": "7F00004142"
+      },
+      "expected": {
+        "frame_hex": "AA5505007F00004142DD3B"
+      }
+    },
+    {
+      "name": "decode_passthrough_7F_zero",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Passthrough 0x7F with meta_len=0 + FinalNode + 'AB'",
+      "input": {
+        "frame_hex": "AA5505007F00004142DD3B"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "7F00004142"
+      }
+    },
+    {
+      "name": "encode_missing_final_node",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Layer 0x01 + raw bytes (42 43), no FinalNode — parser emits entire chain as payload",
+      "input": {
+        "llp_payload_hex": "014243"
+      },
+      "expected": {
+        "frame_hex": "AA550300014243F13E"
+      }
+    },
+    {
+      "name": "decode_missing_final_node",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Layer 0x01 + raw bytes (42 43), no FinalNode — parser emits entire chain as payload",
+      "input": {
+        "frame_hex": "AA550300014243F13E"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "014243"
+      }
+    },
+    {
+      "name": "extended_meta_zero",
+      "type": "decode",
+      "result": "valid",
+      "flags": [
+        "EdgeCase"
+      ],
+      "description": "Extended meta length 0xFF 0x00 0x00 = 0 bytes metadata",
+      "input": {
+        "frame_hex": "AA55090001FF000000646174612057"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "01FF00000064617461"
+      }
+    },
+    {
+      "name": "extended_meta_255",
+      "type": "decode",
+      "result": "valid",
+      "flags": [
+        "EdgeCase"
+      ],
+      "description": "Extended meta length 0xFF 0x00 0xFF = 255 bytes of 0xAA",
+      "input": {
+        "frame_hex": "AA55060101FF00FFAA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA00AA000061620E4F"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "01FF00FFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA006162"
+      }
+    },
+    {
+      "name": "extended_meta_256",
+      "type": "decode",
+      "result": "valid",
+      "flags": [
+        "EdgeCase"
+      ],
+      "description": "Extended meta length 0xFF 0x01 0x00 = 256 bytes of 0xBB",
+      "input": {
+        "frame_hex": "AA55070101FF0100BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB00616208A4"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "01FF0100BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB006162"
+      }
+    }
+  ]
+}

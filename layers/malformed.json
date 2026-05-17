@@ -1,0 +1,65 @@
+{
+  "spec_version": "3.1.0",
+  "category": "layers_malformed",
+  "description": "Malformed layer chains: truncated metadata, empty payload, invalid structures",
+  "vectors": [
+    {
+      "name": "truncated_metadata",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Metadata length 10 but only 6 bytes available — layer is malformed",
+      "input": {
+        "frame_hex": "AA550800010A10203000486535BD"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "LAYER_MALFORMED"
+      }
+    },
+    {
+      "name": "empty_payload",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Zero-length payload — only FinalNode (0x00)",
+      "input": {
+        "frame_hex": "AA550100008883"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "00"
+      }
+    },
+    {
+      "name": "extended_meta_truncated",
+      "type": "decode",
+      "result": "invalid",
+      "flags": [],
+      "description": "Extended meta length 0xFF but only 1 byte follows — truncated",
+      "input": {
+        "frame_hex": "AA55040001FF0000ED0A"
+      },
+      "expected": {
+        "outcome": "ERROR",
+        "error_code": "LAYER_MALFORMED"
+      }
+    },
+    {
+      "name": "reserved_id_FF",
+      "type": "decode",
+      "result": "valid",
+      "flags": [
+        "OptionalBehavior"
+      ],
+      "description": "Layer ID 0xFF (reserved) with metadata — parsers may skip or report",
+      "input": {
+        "frame_hex": "AA550800FF010000646174615B24"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "FF01000064617461"
+      }
+    }
+  ]
+}

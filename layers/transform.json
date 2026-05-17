@@ -1,0 +1,183 @@
+{
+  "spec_version": "3.1.0",
+  "category": "layers_transform",
+  "description": "Transform layer chains: transform (0x80-0xFE), mixed passthrough+transform, max IDs",
+  "vectors": [
+    {
+      "name": "encode_transform_FE_meta5",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Transform 0xFE with 5 bytes metadata + FinalNode + 0xFF",
+      "input": {
+        "llp_payload_hex": "FE05010203040500FF"
+      },
+      "expected": {
+        "frame_hex": "AA550900FE05010203040500FF8C62"
+      }
+    },
+    {
+      "name": "decode_transform_FE_meta5",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Transform 0xFE with 5 bytes metadata + FinalNode + 0xFF",
+      "input": {
+        "frame_hex": "AA550900FE05010203040500FF8C62"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "FE05010203040500FF"
+      }
+    },
+    {
+      "name": "encode_layers_aa_meta",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Two layers with 0xAA in metadata",
+      "input": {
+        "llp_payload_hex": "0102AA00AA0203AABBCC006465616462656566"
+      },
+      "expected": {
+        "frame_hex": "AA5513000102AA0000AA000203AA00BBCC0064656164626565661481"
+      }
+    },
+    {
+      "name": "decode_layers_aa_meta",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Two layers with 0xAA in metadata",
+      "input": {
+        "frame_hex": "AA5513000102AA0000AA000203AA00BBCC0064656164626565661481"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0102AA00AA0203AABBCC006465616462656566"
+      }
+    },
+    {
+      "name": "encode_deep_nested_5",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Five passthrough layers with zero metadata + FinalNode + 'end'",
+      "input": {
+        "llp_payload_hex": "0100010001000100010000656E64"
+      },
+      "expected": {
+        "frame_hex": "AA550E000100010001000100010000656E64A8D3"
+      }
+    },
+    {
+      "name": "decode_deep_nested_5",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Five passthrough layers with zero metadata + FinalNode + 'end'",
+      "input": {
+        "frame_hex": "AA550E000100010001000100010000656E64A8D3"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "0100010001000100010000656E64"
+      }
+    },
+    {
+      "name": "encode_zero_meta_then_final",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Passthrough (meta=0) + FinalNode + 'ab'",
+      "input": {
+        "llp_payload_hex": "010000006162"
+      },
+      "expected": {
+        "frame_hex": "AA550600010000006162BE62"
+      }
+    },
+    {
+      "name": "decode_zero_meta_then_final",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Passthrough (meta=0) + FinalNode + 'ab'",
+      "input": {
+        "frame_hex": "AA550600010000006162BE62"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "010000006162"
+      }
+    },
+    {
+      "name": "encode_transform_layer",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Transform layer (0x80) with 4-byte metadata + FinalNode + 'OK'",
+      "input": {
+        "llp_payload_hex": "8004DEADBEEF004F4B"
+      },
+      "expected": {
+        "frame_hex": "AA5509008004DEADBEEF004F4BB396"
+      }
+    },
+    {
+      "name": "decode_transform_layer",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Transform layer (0x80) with 4-byte metadata + FinalNode + 'OK'",
+      "input": {
+        "frame_hex": "AA5509008004DEADBEEF004F4BB396"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "8004DEADBEEF004F4B"
+      }
+    },
+    {
+      "name": "encode_mixed_layers",
+      "type": "encode",
+      "result": "valid",
+      "flags": [],
+      "description": "Encode — Passthrough (0x01) then transform (0x81) then FinalNode",
+      "input": {
+        "llp_payload_hex": "010211228101FF0055AA01"
+      },
+      "expected": {
+        "frame_hex": "AA550B00010211228101FF0055AA0001C753"
+      }
+    },
+    {
+      "name": "decode_mixed_layers",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Parse — Passthrough (0x01) then transform (0x81) then FinalNode",
+      "input": {
+        "frame_hex": "AA550B00010211228101FF0055AA0001C753"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "010211228101FF0055AA01"
+      }
+    },
+    {
+      "name": "transform_no_handler_decode",
+      "type": "decode",
+      "result": "valid",
+      "flags": [],
+      "description": "Decode transform layer (0x80) with no handler — transport parse succeeds, traversal blocked",
+      "input": {
+        "frame_hex": "AA5509008004DEADBEEF004F4BB396"
+      },
+      "expected": {
+        "outcome": "FRAME",
+        "payload_hex": "8004DEADBEEF004F4B"
+      }
+    }
+  ]
+}

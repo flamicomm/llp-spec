@@ -1,0 +1,182 @@
+{
+  "spec_version": "3.1.0",
+  "category": "parser_incremental",
+  "description": "Incremental parsing: one byte, two bytes, varied chunks",
+  "vectors": [
+    {
+      "name": "byte_by_byte_hello",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Hello frame one byte at a time",
+      "input": {
+        "chunks_hex": [
+          "AA",
+          "55",
+          "06",
+          "00",
+          "00",
+          "48",
+          "65",
+          "6C",
+          "6C",
+          "6F",
+          "37",
+          "98"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "0048656C6C6F"
+          }
+        ]
+      }
+    },
+    {
+      "name": "two_bytes_empty_plus_aa",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Empty + aa_byte frames two bytes at a time",
+      "input": {
+        "chunks_hex": [
+          "AA55",
+          "0100",
+          "0088",
+          "83AA",
+          "5502",
+          "0000",
+          "AA00",
+          "97A6"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "00AA"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mixed_chunks",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Two frames with varied chunk sizes",
+      "input": {
+        "chunks_hex": [
+          "AA5501",
+          "00008883",
+          "AA55060000",
+          "48656C6C6F3798"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00"
+          },
+          {
+            "type": "FRAME",
+            "payload_hex": "0048656C6C6F"
+          }
+        ]
+      }
+    },
+    {
+      "name": "large_frame_byte_by_byte",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "32-byte payload frame one byte at a time",
+      "input": {
+        "chunks_hex": [
+          "AA",
+          "55",
+          "21",
+          "00",
+          "00",
+          "00",
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "0A",
+          "0B",
+          "0C",
+          "0D",
+          "0E",
+          "0F",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "1A",
+          "1B",
+          "1C",
+          "1D",
+          "1E",
+          "1F",
+          "98",
+          "45"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F"
+          }
+        ]
+      }
+    },
+    {
+      "name": "stuffed_frame_byte_by_byte",
+      "type": "stream",
+      "result": "valid",
+      "flags": [],
+      "description": "Stuffed payload (0xAA) fed one byte at a time",
+      "input": {
+        "chunks_hex": [
+          "AA",
+          "55",
+          "02",
+          "00",
+          "00",
+          "AA",
+          "00",
+          "97",
+          "A6"
+        ]
+      },
+      "expected": {
+        "events": [
+          {
+            "type": "FRAME",
+            "payload_hex": "00AA"
+          }
+        ]
+      }
+    }
+  ]
+}
