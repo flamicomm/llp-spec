@@ -1,5 +1,5 @@
 {
-  "spec_version": "3.0.0",
+  "spec_version": "3.1.0",
   "category": "layers_traversal",
   "description": "Traverse layer chains to extract raw final payload",
   "vectors": [

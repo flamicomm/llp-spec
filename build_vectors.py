@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""LLP Spec v3.0.0 — Official Test Vector Generator
+"""LLP Spec v3.1.0 — Official Test Vector Generator
 
 Generates grouped JSON test vector files using the Wycheproof-inspired model:
   result = "valid" | "invalid" | "acceptable"
@@ -14,7 +14,7 @@ import os
 import sys
 
 SPEC_DIR = os.path.dirname(os.path.abspath(__file__))
-SPEC_VERSION = "3.0.0"
+SPEC_VERSION = "3.1.0"
 
 
 # =============================================================================

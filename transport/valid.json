@@ -1,5 +1,5 @@
 {
-  "spec_version": "3.0.0",
+  "spec_version": "3.1.0",
   "category": "transport_valid",
   "description": "Valid LLP frames: encoding, decoding round-trips, and multi-frame streams",
   "vectors": [

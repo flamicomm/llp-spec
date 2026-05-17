@@ -1,5 +1,5 @@
 {
-  "spec_version": "3.0.0",
+  "spec_version": "3.1.0",
   "category": "parser_incremental",
   "description": "Incremental parsing: one byte, two bytes, varied chunks",
   "vectors": [

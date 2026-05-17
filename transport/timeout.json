@@ -1,5 +1,5 @@
 {
-  "spec_version": "3.0.0",
+  "spec_version": "3.1.0",
   "category": "transport_timeout",
   "description": "Timeout behaviour: mid-frame, between frames, and recovery after timeout",
   "vectors": [

@@ -20,6 +20,6 @@ The schema describes the structure of vector files; the protocol version lives i
 ## Design Notes
 
 - The schema uses JSON Schema draft-07 `if`/`then`/`else` for conditional per-type validation.
-- `spec_version` in each vector file is the *protocol* version (e.g. `"3.0.0"`), independent of the schema version.
+- `spec_version` in each vector file is the *protocol* version (e.g. `"3.1.0"`), independent of the schema version.
 - `result: "acceptable"` vectors MUST have at least one flag; the flag documents the ambiguity.
 - Every vector file must pass schema validation before it can be used with `validate_vectors.py`.
