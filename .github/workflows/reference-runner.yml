@@ -25,12 +25,20 @@ on:
 
 jobs:
   reference:
-    name: Reference on Python ${{ matrix.python }}
-    runs-on: ubuntu-latest
+    name: Reference on Python ${{ matrix.python }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        python: ['3.9', '3.11', '3.13']
+        # ubuntu-latest is 26.04, which has no setup-python builds for 3.9/3.10,
+        # so the oldest interpreter is tested on the previous LTS image.
+        include:
+          - python: '3.10'
+            os: ubuntu-22.04
+          - python: '3.11'
+            os: ubuntu-latest
+          - python: '3.13'
+            os: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
