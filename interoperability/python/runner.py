@@ -1,247 +1,191 @@
-"""
-LLP Reference Runner — Python implementation of LLP transport deframer.
+"""Conformance vector driver for LLP wire format 4.0.0.
 
-Provides CRC16-CCITT (incremental), frame building (plain & stuffed),
-and frame deframing (state machine with timeout).
-Matches the C/Java reference implementations.
+This module does **not** implement the protocol: it imports the vendored
+reference implementation (``reference/llp_v4.py``) and turns a JSON vector into
+an observable outcome. Keeping the two roles apart is what makes the vectors a
+real contract — if the driver reimplemented CRC or deframing, a bug could cancel
+itself out.
+
+Public API:
+
+    run(case)    -> Outcome        apply one vector case
+    check(case)  -> list[str]      compare against ``expect``; [] means pass
+
+A case is a dict as described by ``schema/vector.schema.json`` (schema 2.0.0)
+and by ``docs/CONFORMANCE.md``.
 """
 
 from __future__ import annotations
-import time
+
+import sys
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Callable, List, Optional
+from pathlib import Path
 
-POLY = 0x1021
-INIT = 0xFFFF
+ROOT = Path(__file__).resolve().parents[2]
+REFERENCE = ROOT / "reference"
+if str(REFERENCE) not in sys.path:
+    sys.path.insert(0, str(REFERENCE))
 
-_CRC_TABLE: List[int] = []
-for i in range(256):
-    crc = i << 8
-    for _ in range(8):
-        if crc & 0x8000:
-            crc = ((crc << 1) ^ POLY) & 0xFFFF
-        else:
-            crc = (crc << 1) & 0xFFFF
-    _CRC_TABLE.append(crc)
+import llp_v4 as llp  # noqa: E402
 
-
-def crc16_update(crc: int, byte: int) -> int:
-    idx = ((crc >> 8) ^ byte) & 0xFF
-    return ((crc << 8) ^ _CRC_TABLE[idx]) & 0xFFFF
-
-
-def crc16(data: bytes) -> int:
-    c = INIT
-    for b in data:
-        c = crc16_update(c, b)
-    return c
-
-
-def make_frame(payload: bytes) -> bytes:
-    header = bytes([0xAA, 0x55, len(payload) & 0xFF, (len(payload) >> 8) & 0xFF])
-    crc_val = crc16(header + payload)
-    return header + payload + bytes([crc_val & 0xFF, (crc_val >> 8) & 0xFF])
-
-
-def make_stuffed_frame(payload: bytes) -> bytes:
-    header = bytes([0xAA, 0x55, len(payload) & 0xFF, (len(payload) >> 8) & 0xFF])
-    stuffed = bytearray()
-    for b in payload:
-        if b == 0xAA:
-            stuffed.extend([0xAA, 0x00])
-        else:
-            stuffed.append(b)
-    crc_val = crc16(header + payload)
-    return header + bytes(stuffed) + bytes([crc_val & 0xFF, (crc_val >> 8) & 0xFF])
-
-
-class ErrorCode(Enum):
-    CHECKSUM = "CHECKSUM"
-    TIMEOUT = "TIMEOUT"
-    SYNC_ERROR = "SYNC_ERROR"
-    PAYLOAD_LEN_INVALID = "PAYLOAD_LEN_INVALID"
-    BUFFER_FULL = "BUFFER_FULL"
-    LAYER_MALFORMED = "LAYER_MALFORMED"
-    TRANSFORM_NO_HANDLER = "TRANSFORM_NO_HANDLER"
+# Canonical error names, in the order the specification lists them.
+ERROR_NAMES = (llp.ERR_CRC, llp.ERR_LEN, llp.ERR_TIMEOUT, llp.ERR_SYNC)
+KINDS = ("encode", "decode", "stream")
 
 
 @dataclass
-class FrameEvent:
-    type: str
-    payload_hex: Optional[str] = None
-    error_code: Optional[str] = None
+class Outcome:
+    """Everything a case can observe: delivered frames, errors, timeout count."""
+
+    frames: list = field(default_factory=list)   # [(channel, payload_bytes)]
+    errors: list = field(default_factory=list)   # [error name]
+    timeouts: int = 0
+
+    def describe(self) -> str:
+        frames = ", ".join(f"ch{ch}:{pl.hex() or '-'}" for ch, pl in self.frames) or "-"
+        errors = ", ".join(self.errors) or "-"
+        return f"frames=[{frames}] errors=[{errors}] timeouts={self.timeouts}"
 
 
-class Deframer:
-    MAX_PAYLOAD = 1024 * 1024
+@dataclass
+class CaseResult:
+    """A case plus the outcome of running it, for reporting."""
 
-    def __init__(self, timeout_ms: int = 2000, max_payload: int = MAX_PAYLOAD):
-        self.timeout_ms = timeout_ms
-        self.max_payload = max_payload
-        self.state = "WAIT_MAGIC1"
-        self.escape_pending = False
-        self.payload_len = 0
-        self.payload_idx = 0
-        self._len_l = 0
-        self.crc_calc = INIT
-        self.crc_received = 0
-        self.last_byte_time = 0.0
-        self._payload = bytearray()
-        self._events: List[FrameEvent] = []
+    case_id: str
+    kind: str
+    problems: list = field(default_factory=list)
 
     @property
-    def events(self) -> List[FrameEvent]:
-        return list(self._events)
-
-    def _notify_frame(self, payload: bytes):
-        ev = FrameEvent(type="FRAME", payload_hex=payload.hex().upper())
-        self._events.append(ev)
-
-    def _notify_error(self, code: str):
-        ev = FrameEvent(type="ERROR", error_code=code)
-        self._events.append(ev)
-
-    def _reset(self):
-        self.state = "WAIT_MAGIC1"
-        self.payload_idx = 0
-        self.crc_calc = INIT
-        self.escape_pending = False
-
-    def process_byte(self, b: int, current_time_ms: Optional[float] = None) -> None:
-        if current_time_ms is None:
-            current_time_ms = time.time() * 1000
-
-        # Timeout check
-        if self.state != "WAIT_MAGIC1":
-            elapsed = current_time_ms - self.last_byte_time
-            if elapsed > self.timeout_ms:
-                self._reset()
-                self._notify_error(ErrorCode.TIMEOUT.value)
-                if b == 0xAA:
-                    self.state = "WAIT_MAGIC2"
-                self.last_byte_time = current_time_ms
-                return
-
-        self.last_byte_time = current_time_ms
-
-        # Escape / byte unstuffing (only in payload-reading states)
-        if self.state not in ("WAIT_MAGIC1", "WAIT_MAGIC2"):
-            if self.escape_pending:
-                self.escape_pending = False
-                if b == 0x55:
-                    self._notify_error(ErrorCode.SYNC_ERROR.value)
-                    self.crc_calc = INIT
-                    self.crc_calc = crc16_update(self.crc_calc, 0xAA)
-                    self.crc_calc = crc16_update(self.crc_calc, 0x55)
-                    self.state = "READ_LEN_L"
-                    return
-                elif b == 0x00:
-                    b = 0xAA
-                else:
-                    self._reset()
-                    self._notify_error(ErrorCode.SYNC_ERROR.value)
-                    return
-            elif b == 0xAA:
-                self.escape_pending = True
-                return
-
-        # State machine
-        if self.state == "WAIT_MAGIC1":
-            if b == 0xAA:
-                self.state = "WAIT_MAGIC2"
-
-        elif self.state == "WAIT_MAGIC2":
-            if b == 0x55:
-                self.crc_calc = INIT
-                self.crc_calc = crc16_update(self.crc_calc, 0xAA)
-                self.crc_calc = crc16_update(self.crc_calc, 0x55)
-                self.state = "READ_LEN_L"
-            elif b == 0xAA:
-                pass
-            else:
-                self.state = "WAIT_MAGIC1"
-
-        elif self.state == "READ_LEN_L":
-            self.crc_calc = crc16_update(self.crc_calc, b)
-            self._len_l = b
-            self.state = "READ_LEN_H"
-
-        elif self.state == "READ_LEN_H":
-            self.crc_calc = crc16_update(self.crc_calc, b)
-            self.payload_len = self._len_l | (b << 8)
-            if self.payload_len > self.max_payload:
-                self._reset()
-                self._notify_error(ErrorCode.PAYLOAD_LEN_INVALID.value)
-                return
-            self.payload_idx = 0
-            self._payload = bytearray()
-            self.state = "READ_CRC_L" if self.payload_len == 0 else "READ_PAYLOAD"
-
-        elif self.state == "READ_PAYLOAD":
-            self._payload.append(b)
-            self.crc_calc = crc16_update(self.crc_calc, b)
-            self.payload_idx += 1
-            if self.payload_idx == self.payload_len:
-                self.state = "READ_CRC_L"
-
-        elif self.state == "READ_CRC_L":
-            self.crc_received = b
-            self.state = "READ_CRC_H"
-
-        elif self.state == "READ_CRC_H":
-            self.crc_received |= (b << 8)
-            if self.crc_received != self.crc_calc:
-                self._reset()
-                self._notify_error(ErrorCode.CHECKSUM.value)
-                return
-            self._reset()
-            self._notify_frame(bytes(self._payload))
-
-    def process_bytes(self, data: bytes, current_time_ms: Optional[float] = None) -> None:
-        for b in data:
-            self.process_byte(b, current_time_ms)
+    def ok(self) -> bool:
+        return not self.problems
 
 
-# ── Layer chain traversal ─────────────────────────────────────────────
+# --------------------------------------------------------------------------
+# Feeding
+# --------------------------------------------------------------------------
+def steps(case: dict) -> list[tuple[int, int]]:
+    """Expand a case into ``(byte, dt_ms)`` steps.
 
-
-def traverse_layer_chain(raw_payload: bytes) -> tuple[bool, Optional[str], bytes]:
+    A decode case carries either ``frame`` (compact: every byte with dt 0) or
+    ``feed`` (explicit: needed for timed gaps). The schema forbids both.
     """
-    Walk a layer chain, returning (success, error_code, final_payload).
+    if "feed" in case:
+        return [(int(step["hex"], 16), int(step["dt_ms"])) for step in case["feed"]]
+    return [(byte, 0) for byte in bytes.fromhex(case["frame"])]
 
-    Passthrough layers (0x01-0x7F):  skip metadata, continue.
-    Transform layers (0x80-0xFE):    no handler → error TRANSFORM_NO_HANDLER.
-    FinalNode (0x00):                stop, remainder is application payload.
-    Unknown/reserved (0xFF):         skip (treat as passthrough).
+
+def _parser_for(case: dict) -> "llp.Parser":
+    return llp.Parser(
+        capacity=case.get("capacity", llp.MAX_PAYLOAD),
+        timeout_ms=case.get("timeout_ms", llp.DEFAULT_TIMEOUT_MS),
+    )
+
+
+def run(case: dict) -> Outcome:
+    """Apply one decode or stream case and return what the parser observed."""
+    parser = _parser_for(case)
+    outcome = Outcome()
+
+    if case["kind"] == "stream":
+        chunks = [bytes.fromhex(chunk) for chunk in case["chunks"]]
+        pairs = [(byte, 0) for chunk in chunks for byte in chunk]
+    else:
+        pairs = steps(case)
+
+    now = 0
+    for byte, dt_ms in pairs:
+        now += dt_ms
+        for event in parser.feed(byte, now):
+            if event[0] == "frame":
+                outcome.frames.append((event[1], event[2]))
+            elif event[0] == "error":
+                outcome.errors.append(event[1])
+
+    outcome.timeouts = parser.timeouts
+    return outcome
+
+
+# --------------------------------------------------------------------------
+# Checking
+# --------------------------------------------------------------------------
+def _expected(case: dict) -> Outcome:
+    expect = case["expect"]
+    return Outcome(
+        frames=[(f["channel"], bytes.fromhex(f["payload"])) for f in expect["frames"]],
+        errors=list(expect["errors"]),
+        timeouts=int(expect["timeouts"]),
+    )
+
+
+def _compare(got: Outcome, want: Outcome) -> list[str]:
+    problems = []
+    if got.frames != want.frames:
+        got_f = [(ch, pl.hex()) for ch, pl in got.frames]
+        want_f = [(ch, pl.hex()) for ch, pl in want.frames]
+        problems.append(f"frames: got {got_f} want {want_f}")
+    if got.errors != want.errors:
+        problems.append(f"errors: got {got.errors} want {want.errors}")
+    if got.timeouts != want.timeouts:
+        problems.append(f"timeouts: got {got.timeouts} want {want.timeouts}")
+    return problems
+
+
+def _unknown_errors(errors) -> list[str]:
+    return [name for name in errors if name not in ERROR_NAMES]
+
+
+def check(case: dict) -> list[str]:
+    """Verify one case against the reference implementation.
+
+    Returns a list of human-readable problems; an empty list means the case
+    passes. ``result: "invalid"`` cases must additionally deliver no frame,
+    so that an implementation which silently accepts them cannot pass.
     """
-    pos = 0
-    while pos < len(raw_payload):
-        layer_id = raw_payload[pos]
-        pos += 1
+    kind = case.get("kind")
+    if kind not in KINDS:
+        return [f"unknown kind: {kind!r}"]
 
-        if layer_id == 0x00:
-            return True, None, raw_payload[pos:]
+    if kind == "encode":
+        channel = case["channel"]
+        payload = bytes.fromhex(case["payload"])
+        expected_frame = case["frame"].lower()
 
-        if 0x80 <= layer_id <= 0xFE:
-            return False, ErrorCode.TRANSFORM_NO_HANDLER.value, b""
+        problems = []
+        generated = llp.encode(channel, payload)
+        if generated.hex() != expected_frame:
+            problems.append(
+                f"frame: got {generated.hex()} want {expected_frame}"
+            )
+            return problems
 
-        if layer_id == 0xFF or (0x01 <= layer_id <= 0x7F):
-            if pos >= len(raw_payload):
-                return False, ErrorCode.LAYER_MALFORMED.value, b""
-            meta_len = raw_payload[pos]
-            pos += 1
-            if meta_len == 0xFF:
-                if pos + 2 > len(raw_payload):
-                    return False, ErrorCode.LAYER_MALFORMED.value, b""
-                actual_len = (raw_payload[pos] << 8) | raw_payload[pos + 1]
-                pos += 2
-            else:
-                actual_len = meta_len
-            if pos + actual_len > len(raw_payload):
-                return False, ErrorCode.LAYER_MALFORMED.value, b""
-            pos += actual_len
-        else:
-            return False, ErrorCode.LAYER_MALFORMED.value, b""
+        # Every encoded frame must decode back to the same (channel, payload).
+        round_trip = run(
+            {
+                "kind": "decode",
+                "capacity": llp.MAX_PAYLOAD,
+                "timeout_ms": llp.DEFAULT_TIMEOUT_MS,
+                "frame": expected_frame,
+            }
+        )
+        want = Outcome(frames=[(channel, payload)], errors=[], timeouts=0)
+        problems.extend(_compare(round_trip, want))
+        return problems
 
-    return False, ErrorCode.LAYER_MALFORMED.value, b""
+    got = run(case)
+    want = _expected(case)
+    problems = _compare(got, want)
+
+    bad_names = _unknown_errors(want.errors)
+    if bad_names:
+        problems.append(f"unknown error names in expectation: {bad_names}")
+
+    # Wycheproof semantics: an `invalid` case must be rejected (at least one
+    # error event), and a `valid` case must not produce any error at all. This
+    # catches implementations that silently accept corrupt input without
+    # pinning *which* frame a recovery case is allowed to deliver.
+    if case.get("result") == "invalid" and not got.errors:
+        problems.append("result is 'invalid' but no error was reported")
+    if case.get("result") == "valid" and got.errors:
+        problems.append(f"result is 'valid' but errors were reported: {got.errors}")
+
+    return problems

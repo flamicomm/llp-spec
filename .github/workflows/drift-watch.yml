@@ -1,0 +1,41 @@
+name: Drift Watch
+
+# The vendored reference (reference/llp_v4.py) is a copy of the library
+# repository's scripts/llp_v4.py. The weekly job checks whether the source
+# moved; a difference means the specification may have to follow.
+#
+# It is a report, not a gate: it runs on a schedule and fails loudly so the
+# drift shows up, but it never blocks a pull request.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    env:
+      LIBRARY_REF: ${{ vars.LLP_PROTOCOL_REF || 'feature/v4.0.0' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the source reference
+        run: |
+          url="https://raw.githubusercontent.com/flamicomm/llp-protocol/${LIBRARY_REF}/scripts/llp_v4.py"
+          echo "source: $url"
+          if ! curl -fsSL "$url" -o /tmp/upstream_llp_v4.py; then
+            echo "::warning::cannot fetch ${url}; is the ref published? Skipping."
+            exit 0
+          fi
+          echo "fetched"
+
+      - name: Compare with the vendored copy
+        run: |
+          if diff -u reference/llp_v4.py /tmp/upstream_llp_v4.py; then
+            echo "ok: vendored reference matches ${LIBRARY_REF}"
+          else
+            echo "::error::reference/llp_v4.py differs from llp-protocol@${LIBRARY_REF}"
+            echo "Update reference/VENDOR.md and regenerate the corpus if the wire changed."
+            exit 1
+          fi

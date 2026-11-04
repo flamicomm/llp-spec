@@ -2,28 +2,56 @@ name: Reference Runner
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
     paths:
-      - 'interoperability/python/**'
-      - 'validate_vectors.py'
+      - 'reference/**'
+      - 'interoperability/**'
+      - 'tools/check_vendor.py'
+      - 'tools/selftest_reference.py'
+      - 'tools/validate_vectors.py'
+      - 'vectors/**'
       - '.github/workflows/reference-runner.yml'
   pull_request:
-    branches: [main]
+    branches: [main, dev]
     paths:
-      - 'interoperability/python/**'
-      - 'validate_vectors.py'
+      - 'reference/**'
+      - 'interoperability/**'
+      - 'tools/check_vendor.py'
+      - 'tools/selftest_reference.py'
+      - 'tools/validate_vectors.py'
+      - 'vectors/**'
+      - '.github/workflows/reference-runner.yml'
   workflow_dispatch:
 
 jobs:
-  python-runner:
-    runs-on: ubuntu-latest
+  reference:
+    name: Reference on Python ${{ matrix.python }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # ubuntu-latest is 26.04, which has no setup-python builds for 3.9/3.10,
+        # so the oldest interpreter is tested on the previous LTS image.
+        include:
+          - python: '3.10'
+            os: ubuntu-22.04
+          - python: '3.11'
+            os: ubuntu-latest
+          - python: '3.13'
+            os: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python }}
 
-      - name: Run reference runner
-        run: python validate_vectors.py
+      - name: Vendored reference matches its pinned hash
+        run: python3 tools/check_vendor.py
+
+      - name: Reference matches the specification examples
+        run: python3 tools/selftest_reference.py
+
+      - name: Conformance run
+        run: python3 tools/validate_vectors.py
