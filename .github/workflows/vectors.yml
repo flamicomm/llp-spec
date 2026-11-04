@@ -2,7 +2,7 @@ name: Vectors
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
     paths:
       - 'vectors/**'
       - 'schema/**'
@@ -12,7 +12,7 @@ on:
       - 'README.md'
       - '.github/workflows/vectors.yml'
   pull_request:
-    branches: [main]
+    branches: [main, dev]
     paths:
       - 'vectors/**'
       - 'schema/**'

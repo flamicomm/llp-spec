@@ -2,7 +2,7 @@ name: Reference Runner
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
     paths:
       - 'reference/**'
       - 'interoperability/**'
@@ -12,7 +12,7 @@ on:
       - 'vectors/**'
       - '.github/workflows/reference-runner.yml'
   pull_request:
-    branches: [main]
+    branches: [main, dev]
     paths:
       - 'reference/**'
       - 'interoperability/**'
