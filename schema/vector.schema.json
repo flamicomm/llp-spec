@@ -1,127 +1,194 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/flamicomm/llp-spec/schema/vector.schema.json",
-  "$comment": "Version 1.1.0 — added Slow flag for timing vectors",
+  "$comment": "Version 2.0.0 — wire format 4.0.0: 1-byte LEN, CHANNEL byte, per-case capacity/timeout, injected time, no layer chain. Schema version is independent of the protocol `spec` field.",
   "title": "LLP Test Vector File",
-  "version": "1.1.0",
-  "description": "Schema for grouped LLP (Layered Link Protocol) official test vectors. Schema version is independent of protocol spec_version.",
+  "version": "2.0.0",
+  "description": "Schema for grouped LLP (Lightweight Link Protocol) conformance vectors, wire format 4.0.0.",
   "type": "object",
-  "required": ["spec_version", "category", "description", "vectors"],
+  "required": ["spec", "schema_version", "category", "description", "generated_by", "cases"],
   "additionalProperties": false,
   "definitions": {
-    "hex_string": {
+    "hex": {
       "type": "string",
-      "pattern": "^[0-9A-F]*$"
+      "pattern": "^[0-9a-f]*$"
+    },
+    "hex_non_empty": {
+      "type": "string",
+      "pattern": "^[0-9a-f]+$"
     },
     "byte_hex": {
       "type": "string",
-      "pattern": "^[0-9A-F]{2}$"
+      "pattern": "^[0-9a-f]{2}$"
     },
     "error_code": {
       "type": "string",
-      "enum": ["CHECKSUM", "TIMEOUT", "SYNC_ERROR", "PAYLOAD_LEN_INVALID", "BUFFER_FULL", "LAYER_MALFORMED", "TRANSFORM_NO_HANDLER"]
+      "enum": ["LLP_ERR_CRC", "LLP_ERR_LEN", "LLP_ERR_TIMEOUT", "LLP_ERR_SYNC"]
     },
-    "result_value": {
+    "result": {
       "type": "string",
       "enum": ["valid", "invalid", "acceptable"]
     },
     "flag": {
       "type": "string",
-      "enum": ["OptionalBehavior", "EdgeCase", "ImplementationDefined", "Deprecated", "Slow"]
+      "enum": ["EdgeCase", "OptionalBehavior", "ImplementationDefined", "Deprecated"]
     },
-    "frame_event": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": { "type": { "const": "FRAME" }, "payload_hex": { "$ref": "#/definitions/hex_string" } },
-          "required": ["type", "payload_hex"],
-          "additionalProperties": false
+    "channel": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 255
+    },
+    "capacity": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 255
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 32767
+    },
+    "expected_frame": {
+      "type": "object",
+      "required": ["channel", "payload"],
+      "properties": {
+        "channel": { "$ref": "#/definitions/channel" },
+        "payload": { "$ref": "#/definitions/hex" }
+      },
+      "additionalProperties": false
+    },
+    "expect": {
+      "type": "object",
+      "required": ["frames", "errors", "timeouts"],
+      "properties": {
+        "frames": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/expected_frame" }
         },
-        {
-          "type": "object",
-          "properties": { "type": { "const": "ERROR" }, "error_code": { "$ref": "#/definitions/error_code" } },
-          "required": ["type", "error_code"],
-          "additionalProperties": false
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/error_code" }
+        },
+        "timeouts": {
+          "type": "integer",
+          "minimum": 0
         }
-      ]
+      },
+      "additionalProperties": false
+    },
+    "step": {
+      "type": "object",
+      "required": ["hex", "dt_ms"],
+      "properties": {
+        "hex": { "$ref": "#/definitions/byte_hex" },
+        "dt_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "$comment": "Added to a virtual clock before feeding the byte. The parser evaluates differences modulo 65536, so any non-negative value is legal (65530 is used by the wrap vectors)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "common": {
+      "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" },
+      "kind": { "type": "string" },
+      "result": { "$ref": "#/definitions/result" },
+      "flags": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/flag" },
+        "uniqueItems": true
+      },
+      "note": { "type": "string", "minLength": 5 }
     }
   },
   "properties": {
-    "spec_version": { "type": "string", "const": "3.1.0" },
-    "category": { "type": "string", "pattern": "^[a-z][a-zA-Z0-9_]*$" },
+    "spec": { "const": "llp/4.0.0" },
+    "schema_version": { "const": "2.0.0" },
+    "category": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
     "description": { "type": "string", "minLength": 5 },
-    "vectors": {
+    "generated_by": { "type": "string", "minLength": 3 },
+    "cases": {
       "type": "array",
       "minItems": 1,
       "items": {
-        "type": "object",
-        "required": ["name", "type", "result", "description", "flags", "input", "expected"],
-        "properties": {
-          "name": { "type": "string", "pattern": "^[a-z][a-zA-Z0-9_]*$" },
-          "type": { "type": "string", "enum": ["encode", "decode", "stream", "timing", "traversal"] },
-          "result": { "$ref": "#/definitions/result_value" },
-          "description": { "type": "string", "minLength": 5 },
-          "flags": { "type": "array", "items": { "$ref": "#/definitions/flag" } },
-          "config": { "type": "object" },
-          "input": { "type": "object" },
-          "expected": { "type": "object" }
-        },
-        "additionalProperties": false,
-        "allOf": [
-          { "if": { "properties": { "type": { "const": "encode" } } },
-            "then": {
-              "properties": {
-                "input": { "type": "object", "required": ["llp_payload_hex"], "properties": { "llp_payload_hex": { "$ref": "#/definitions/hex_string" } }, "additionalProperties": false },
-                "expected": { "type": "object", "required": ["frame_hex"], "properties": { "frame_hex": { "$ref": "#/definitions/hex_string" } }, "additionalProperties": false }
-              }
-            }
+        "oneOf": [
+          {
+            "title": "encode",
+            "type": "object",
+            "required": ["id", "kind", "result", "flags", "channel", "payload", "frame"],
+            "properties": {
+              "id": { "$ref": "#/definitions/common/id" },
+              "kind": { "const": "encode" },
+              "result": { "$ref": "#/definitions/common/result" },
+              "flags": { "$ref": "#/definitions/common/flags" },
+              "note": { "$ref": "#/definitions/common/note" },
+              "channel": { "$ref": "#/definitions/channel" },
+              "payload": { "$ref": "#/definitions/hex" },
+              "frame": { "$ref": "#/definitions/hex_non_empty" }
+            },
+            "additionalProperties": false
           },
-          { "if": { "properties": { "type": { "const": "decode" } } },
-            "then": {
-              "properties": {
-                "input": { "type": "object", "required": ["frame_hex"], "properties": { "frame_hex": { "$ref": "#/definitions/hex_string" } }, "additionalProperties": false },
-                "expected": {
-                  "type": "object", "required": ["outcome"],
-                  "properties": {
-                    "outcome": { "type": "string", "enum": ["FRAME", "ERROR", "NONE"] },
-                    "payload_hex": { "$ref": "#/definitions/hex_string" },
-                    "error_code": { "$ref": "#/definitions/error_code" },
-                    "crc_hex": { "type": "string", "pattern": "^[0-9A-F]{4}$" }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
+          {
+            "title": "decode",
+            "type": "object",
+            "required": ["id", "kind", "result", "flags", "capacity", "timeout_ms", "expect"],
+            "properties": {
+              "id": { "$ref": "#/definitions/common/id" },
+              "kind": { "const": "decode" },
+              "result": { "$ref": "#/definitions/common/result" },
+              "flags": { "$ref": "#/definitions/common/flags" },
+              "note": { "$ref": "#/definitions/common/note" },
+              "capacity": { "$ref": "#/definitions/capacity" },
+              "timeout_ms": { "$ref": "#/definitions/timeout_ms" },
+              "frame": { "$ref": "#/definitions/hex_non_empty" },
+              "feed": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "$ref": "#/definitions/step" }
+              },
+              "expect": { "$ref": "#/definitions/expect" }
+            },
+            "additionalProperties": false,
+            "oneOf": [
+              { "required": ["frame"] },
+              { "required": ["feed"] }
+            ]
           },
-          { "if": { "properties": { "type": { "const": "stream" } } },
-            "then": {
-              "properties": {
-                "input": { "type": "object", "required": ["chunks_hex"], "properties": { "chunks_hex": { "type": "array", "items": { "$ref": "#/definitions/hex_string" } } }, "additionalProperties": false },
-                "expected": { "type": "object", "required": ["events"], "properties": { "events": { "type": "array", "items": { "$ref": "#/definitions/frame_event" } } }, "additionalProperties": false }
-              }
-            }
-          },
-          { "if": { "properties": { "type": { "const": "timing" } } },
-            "then": {
-              "required": ["config"],
-              "properties": {
-                "config": { "type": "object", "required": ["timeout_ms"], "properties": { "timeout_ms": { "type": "integer", "minimum": 1 } }, "additionalProperties": false },
-                "input": { "type": "object", "required": ["events"], "properties": { "events": { "type": "array", "items": { "type": "object", "required": ["byte_hex", "time_ms"], "properties": { "byte_hex": { "$ref": "#/definitions/byte_hex" }, "time_ms": { "type": "integer", "minimum": 0 } }, "additionalProperties": false } } }, "additionalProperties": false },
-                "expected": { "type": "object", "required": ["events"], "properties": { "events": { "type": "array", "items": { "$ref": "#/definitions/frame_event" } } }, "additionalProperties": false }
-              }
-            }
-          },
-          { "if": { "properties": { "type": { "const": "traversal" } } },
-            "then": {
-              "properties": {
-                "input": { "type": "object", "required": ["frame_hex"], "properties": { "frame_hex": { "$ref": "#/definitions/hex_string" } }, "additionalProperties": false },
-                "expected": { "type": "object", "required": ["outcome"], "properties": { "outcome": { "type": "string", "enum": ["FRAME", "ERROR", "NONE"] }, "final_payload_hex": { "$ref": "#/definitions/hex_string" }, "error_code": { "$ref": "#/definitions/error_code" } }, "additionalProperties": false }
-              }
-            }
+          {
+            "title": "stream",
+            "type": "object",
+            "required": ["id", "kind", "result", "flags", "capacity", "timeout_ms", "chunks", "expect"],
+            "properties": {
+              "id": { "$ref": "#/definitions/common/id" },
+              "kind": { "const": "stream" },
+              "result": { "$ref": "#/definitions/common/result" },
+              "flags": { "$ref": "#/definitions/common/flags" },
+              "note": { "$ref": "#/definitions/common/note" },
+              "capacity": { "$ref": "#/definitions/capacity" },
+              "timeout_ms": { "$ref": "#/definitions/timeout_ms" },
+              "chunks": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "$ref": "#/definitions/hex_non_empty" }
+              },
+              "expect": { "$ref": "#/definitions/expect" }
+            },
+            "additionalProperties": false
           }
-        ],
-        "if": { "properties": { "result": { "const": "acceptable" } } },
-        "then": { "properties": { "flags": { "minItems": 1 } } }
+        ]
+      }
+    }
+  },
+  "if": {
+    "properties": { "cases": { "type": "array" } }
+  },
+  "then": {
+    "properties": {
+      "cases": {
+        "items": {
+          "if": { "properties": { "result": { "const": "acceptable" } } },
+          "then": { "properties": { "flags": { "minItems": 1 } } }
+        }
       }
     }
   }
