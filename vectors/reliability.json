@@ -55,6 +55,16 @@
       "frame": "aa550102ff1afb"
     },
     {
+      "id": "rel-enc-hello-session",
+      "kind": "encode",
+      "result": "valid",
+      "flags": [],
+      "channel": 3,
+      "payload": "2a",
+      "frame": "aa5501032af353",
+      "note": "R1 session marker on channel 3: the receiver resets its dedup state"
+    },
+    {
       "id": "rel-dec-command",
       "kind": "decode",
       "result": "valid",

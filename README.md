@@ -139,10 +139,10 @@ implementation, so a vector cannot disagree with the specification.
 | `vectors/errors.json` | 15 | `transport_errors` | Error handling: CRC, length and sync errors, and recovery after them. |
 | `vectors/timing.json` | 12 | `transport_timing` | Inter-byte timeout with injected time: gaps, boundary, recovery, 16-bit wrap. |
 | `vectors/channels.json` | 14 | `transport_channels` | Channel field: routing range, reserved range, and stuffing of the field itself. |
-| `vectors/reliability.json` | 8 | `profile_r1_reliability` | Profile R1 (optional): command/ACK frame layouts on channels 1 and 2. |
+| `vectors/reliability.json` | 9 | `profile_r1_reliability` | Profile R1 (optional): command/ACK frame layouts on channels 1 and 2. |
 | `vectors/payload.json` | 24 | `transport_payload` | Opaque payload: bytes that look like v3 layer chains are delivered unchanged. |
 | `vectors/streams.json` | 12 | `parser_streams` | Incremental parsing: chunk boundaries, multi-frame streams and recovery. |
-| **Total** | **169** | | |
+| **Total** | **170** | | |
 <!-- LLP-VECTORS-TABLE:END -->
 
 All hex strings are lowercase without separators. A case carries either a

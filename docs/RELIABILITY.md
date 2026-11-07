@@ -35,6 +35,7 @@ and does not replace application-level acknowledgements (see §9).
 |---:|---|---|---|
 | `1` | `LLP4_REL_CH_COMMAND` | sender → receiver | reliable command frames |
 | `2` | `LLP4_REL_CH_ACK` | receiver → sender | acknowledgements |
+| `3` | `LLP4_REL_CH_HELLO` | sender → receiver | session start: reset dedup state |
 
 Other channels keep their generic v4 meaning (channel `0` is recommended for
 unreliable / urgent traffic). Profile frames are **ordinary v4 frames**: same
@@ -45,6 +46,7 @@ magic, length, stuffing and CRC.
 ```
 COMMAND (channel 1):  [ SEQ (1) | DATA (0..N) ]
 ACK     (channel 2):  [ SEQ (1) ]
+HELLO   (channel 3):  [ SESSION (0..1) ]        ; opaque, ignored
 ```
 
 - `SEQ` is an unsigned byte, `0..255`, wrapping modulo 256.
@@ -103,6 +105,18 @@ order, so the application observes a continuous byte stream.
 The timeout is a round-trip budget for one frame plus the receiver's
 acknowledgement latency. It is not a delivery deadline.
 
+### 5.5 Session start
+
+`SEQ` is one byte, so a sender that restarts (reboot, reconnect, process
+restart) would restart its sequence and could collide with the receiver's
+`last_seq`; the first command after the restart would then be taken for a
+duplicate and dropped.
+
+To prevent that, before the first command of a **session** (process start or new
+link) the sender MUST send a **hello** frame on channel 3 and then reset its own
+`SEQ` to any value. Sending it twice is recommended, since it is not
+acknowledged: losing one copy only re-opens the 1/256 collision window.
+
 ## 6. Receiver rules
 
 1. On a command frame, the receiver MUST first verify that it can accept the
@@ -118,6 +132,11 @@ acknowledgement latency. It is not a delivery deadline.
    (CRC, length, sync). Those are discarded by the parser and no frame reaches
    this layer.
 5. The receiver's state is per link and starts empty (`have_seq = false`).
+6. On a **hello** frame (channel 3), the receiver MUST reset its
+   duplicate-suppression state (forget `last_seq`) and MUST NOT acknowledge it.
+   This is what makes a restarted sender safe (§5.5). A hello does not disturb
+   an outstanding command: the sender only sends it before the first command of
+   a session.
 
 ## 7. Failure handling
 
@@ -174,13 +193,14 @@ them).
 | T6 | command never acknowledged; `MAX_RETRIES` reached | sender reports exhaustion, does not claim delivery |
 | T7 | ACK with an unknown `SEQ` arrives | ignored; window state unchanged |
 | T8 | ACK lost and the duplicate arrives **after** the sender already gave up | receiver still ACKs; data never delivered twice |
+| T9 | sender restarts, sends HELLO, then `SEQ` equal to the last one seen | hello resets the state; the command is delivered (not taken for a duplicate) |
 
 ## 12. Vectors
 
 [`../vectors/reliability.json`](../vectors/reliability.json) pins the frame
 layout: command frames on channel 1 with `SEQ` 0, 255 and `0xAA` (the `SEQ` byte
-is payload, so it is subject to stuffing), ACK frames on channel 2, and the
-interleaving of both channels in one byte stream.
+is payload, so it is subject to stuffing), ACK frames on channel 2, the session
+hello on channel 3, and the interleaving of both channels in one byte stream.
 
 The traces in §11 are behavioural and are not expressible as wire vectors; the
 reference implementation's unit tests cover them.

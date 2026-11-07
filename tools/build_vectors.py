@@ -41,6 +41,7 @@ README = ROOT / "README.md"
 # Profile R1 channels (docs/RELIABILITY.md).
 REL_CH_COMMAND = 1
 REL_CH_ACK = 2
+REL_CH_HELLO = 3
 
 TABLE_BEGIN = "<!-- LLP-VECTORS-TABLE:BEGIN -->"
 TABLE_END = "<!-- LLP-VECTORS-TABLE:END -->"
@@ -676,6 +677,12 @@ def build_reliability_vectors() -> list[dict]:
             note="R1 ACK frame: exactly one payload byte [SEQ] on channel 2",
         ),
         encode_case("rel-enc-ack-max", REL_CH_ACK, b"\xff"),
+        encode_case(
+            "rel-enc-hello-session",
+            REL_CH_HELLO,
+            b"\x2a",
+            note="R1 session marker on channel 3: the receiver resets its dedup state",
+        ),
         decode_case(
             "rel-dec-command",
             llp.encode(REL_CH_COMMAND, command),
