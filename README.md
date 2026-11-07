@@ -203,6 +203,7 @@ python3 tools/validate_vectors.py          # conformance run
 python3 tools/generate_fuzz_seeds.py --check
 python3 tools/check_vendor.py              # vendored reference pin
 python3 tools/selftest_reference.py        # reference vs the spec examples
+python3 tools/selftest_reliability.py      # Profile R1 traces T1-T9 + unit behaviour
 ```
 
 Regenerating after adding a case:

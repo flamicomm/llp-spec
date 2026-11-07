@@ -195,15 +195,23 @@ them).
 | T8 | ACK lost and the duplicate arrives **after** the sender already gave up | receiver still ACKs; data never delivered twice |
 | T9 | sender restarts, sends HELLO, then `SEQ` equal to the last one seen | hello resets the state; the command is delivered (not taken for a duplicate) |
 
-## 12. Vectors
+## 12. Vectors and reference implementation
 
 [`../vectors/reliability.json`](../vectors/reliability.json) pins the frame
 layout: command frames on channel 1 with `SEQ` 0, 255 and `0xAA` (the `SEQ` byte
 is payload, so it is subject to stuffing), ACK frames on channel 2, the session
 hello on channel 3, and the interleaving of both channels in one byte stream.
 
-The traces in §11 are behavioural and are not expressible as wire vectors; the
-reference implementation's unit tests cover them.
+The traces in §11 are behavioural and are not expressible as wire vectors; they
+are covered by the reference implementation's self-check:
+
+```bash
+python3 tools/selftest_reliability.py          # T1-T9 + unit behaviour
+```
+
+Reference implementation: [`../reference/llp_v4_rel.py`](../reference/llp_v4_rel.py)
+(`Sender` + `Receiver`; framing stays in `llp_v4.py`). The C implementation is
+`llp-protocol/include/llp_v4_rel.h` with the same traces in its Unity suite.
 
 ## 13. Non-goals
 
