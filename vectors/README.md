@@ -62,6 +62,16 @@ channel `0xAA` (the field itself is stuffed); two identical payloads on differen
 channels staying distinguishable; and a chunk boundary that falls in the middle
 of a frame without affecting routing or order.
 
+### `reliability.json`
+
+Profile R1 (optional). Pins the frame layout of the reliable command channel:
+command frames on channel `1` with payload `[SEQ][DATA]` (`SEQ` 0, 255 and
+`0xAA`, the last one exercising stuffing of the sequence byte), ACK frames on
+channel `2` with exactly one payload byte `[SEQ]`, and the two channels
+interleaved in a single stream. The behavioural contract of the profile
+(deduplication, retransmission, exhaustion) is the trace table in
+[`../docs/RELIABILITY.md`](../docs/RELIABILITY.md) §11.
+
 ### `payload.json`
 
 The payload is opaque. Each payload here is shaped like a v3 layer chain — a
