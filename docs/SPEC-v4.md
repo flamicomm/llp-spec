@@ -236,8 +236,13 @@ always ready to receive the next frame.
 | `240..255` | reserved for future LLP layers |
 
 Reliability features (sequence numbers, ACK, retransmission) are **not** part of
-the wire format. They belong to an application layer or a future channel
-convention, so that the base framing stays minimal.
+the wire format. They belong to an application layer or a channel convention, so
+that the base framing stays minimal.
+
+An optional convention built on these channels is specified in
+[`RELIABILITY.md`](RELIABILITY.md) (**Profile R1**, channels `1` and `2`). Profile
+frames are ordinary v4 frames; an implementation that ignores the profile stays
+conformant with this document.
 
 ## 10. Relationship with v3.1.0
 
@@ -300,6 +305,10 @@ Memory profiles, as measured by `scripts/measure_v4.py` in the C repository:
 An implementation is conformant when it passes every case in
 [`../vectors/`](../vectors/) — see [`CONFORMANCE.md`](CONFORMANCE.md) for the
 schema, the per-kind rules and the checklist.
+
+[Profile R1](RELIABILITY.md) (reliable command channel) is **optional**: its
+wire layout is covered by [`../vectors/reliability.json`](../vectors/reliability.json),
+and its behavioural contract is the trace table in §11 of that document.
 
 ---
 

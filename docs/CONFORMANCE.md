@@ -26,6 +26,7 @@ python3 tools/validate_vectors.py         # run the corpus through the driver
 | `vectors/errors.json` | CRC, length and sync error handling, plus recovery |
 | `vectors/timing.json` | inter-byte timeouts, boundaries, recovery, 16-bit wrap |
 | `vectors/channels.json` | routing range, reserved range, stuffing of the channel field |
+| `vectors/reliability.json` | **Profile R1** (optional): command/ACK frames on channels 1 and 2 |
 | `vectors/payload.json` | opaque payloads that look like v3 layer chains |
 | `vectors/streams.json` | chunk boundaries, multi-frame streams, recovery |
 
@@ -145,6 +146,22 @@ made real sleeps unnecessary.
 | `LLP_ERR_LEN` | 2 | `LEN` > instance capacity |
 | `LLP_ERR_TIMEOUT` | 3 | inter-byte gap > `timeout_ms` |
 | `LLP_ERR_SYNC` | 4 | bad escape, or a new magic inside a frame |
+
+## Profile R1 (optional)
+
+[`RELIABILITY.md`](RELIABILITY.md) defines an optional reliable command channel
+on top of the base framing. It is **not** part of base conformance:
+
+- Wire layout: covered by [`../vectors/reliability.json`](../vectors/reliability.json)
+  (command frame `[SEQ][DATA]` on channel 1, ACK frame `[SEQ]` on channel 2).
+- Behaviour (deduplication, retransmission, exhaustion): given by the trace
+  table in §11 of that document. An implementation that claims R1 SHOULD ship
+  those traces as unit tests; the C reference does so in
+  `llp-protocol/test/test_v4_rel.c`.
+
+An implementation that ignores the profile stays conformant with the wire
+specification: profile frames are ordinary v4 frames, and the reserved channels
+keep their generic meaning.
 
 ## Conformance checklist
 

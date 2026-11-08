@@ -38,6 +38,11 @@ OUT_DIR = ROOT / "vectors"
 MANIFEST = OUT_DIR / "MANIFEST.sha256"
 README = ROOT / "README.md"
 
+# Profile R1 channels (docs/RELIABILITY.md).
+REL_CH_COMMAND = 1
+REL_CH_ACK = 2
+REL_CH_HELLO = 3
+
 TABLE_BEGIN = "<!-- LLP-VECTORS-TABLE:BEGIN -->"
 TABLE_END = "<!-- LLP-VECTORS-TABLE:END -->"
 
@@ -642,6 +647,62 @@ def build_channel_vectors() -> list[dict]:
     return cases
 
 
+def build_reliability_vectors() -> list[dict]:
+    """Profile R1 (docs/RELIABILITY.md): command and ACK frame layouts."""
+    command = b"\x00G1 X0\n"  # SEQ 0 + application bytes
+    ack = b"\x07"
+    cases = [
+        encode_case(
+            "rel-enc-command-seq0",
+            REL_CH_COMMAND,
+            command,
+            note="R1 command frame: [SEQ][DATA] on channel 1",
+        ),
+        encode_case(
+            "rel-enc-command-seq255",
+            REL_CH_COMMAND,
+            b"\xffG1 X0\n",
+            note="SEQ wraps at 256; 255 is a valid value",
+        ),
+        encode_case(
+            "rel-enc-command-seq-stuffed",
+            REL_CH_COMMAND,
+            b"\xaaG1 X0\n",
+            note="SEQ = 0xAA is payload, so the seq byte itself is stuffed",
+        ),
+        encode_case(
+            "rel-enc-ack-seq7",
+            REL_CH_ACK,
+            ack,
+            note="R1 ACK frame: exactly one payload byte [SEQ] on channel 2",
+        ),
+        encode_case("rel-enc-ack-max", REL_CH_ACK, b"\xff"),
+        encode_case(
+            "rel-enc-hello-session",
+            REL_CH_HELLO,
+            b"\x2a",
+            note="R1 session marker on channel 3: the receiver resets its dedup state",
+        ),
+        decode_case(
+            "rel-dec-command",
+            llp.encode(REL_CH_COMMAND, command),
+            frames=[(REL_CH_COMMAND, command)],
+        ),
+        decode_case(
+            "rel-dec-ack",
+            llp.encode(REL_CH_ACK, ack),
+            frames=[(REL_CH_ACK, ack)],
+        ),
+        decode_case(
+            "rel-dec-command-then-ack",
+            llp.encode(REL_CH_COMMAND, command) + llp.encode(REL_CH_ACK, ack),
+            frames=[(REL_CH_COMMAND, command), (REL_CH_ACK, ack)],
+            note="both profile channels interleaved in one stream; routing is per frame",
+        ),
+    ]
+    return cases
+
+
 def build_payload_vectors() -> list[dict]:
     """Payloads that would have been layer chains in v3 are opaque in v4."""
     table: list[tuple[str, bytes, str]] = [
@@ -782,6 +843,11 @@ VECTOR_SETS: dict[str, tuple[str, str, Callable[[], list[dict]]]] = {
         "transport_channels",
         "Channel field: routing range, reserved range, and stuffing of the field itself.",
         build_channel_vectors,
+    ),
+    "reliability.json": (
+        "profile_r1_reliability",
+        "Profile R1 (optional): command/ACK frame layouts on channels 1 and 2.",
+        build_reliability_vectors,
     ),
     "payload.json": (
         "transport_payload",
