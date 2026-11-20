@@ -158,11 +158,12 @@ python3 tools/build_vectors.py --check   # vectors, manifest and README table
 
 ## Reference implementation
 
-`reference/llp_v4.py` is a byte-identical copy of the C library's Python
-reference ([`reference/VENDOR.md`](reference/VENDOR.md) pins its sha256). It is
-deliberately literal: ~200 lines that can be transliterated to a new language.
-`interoperability/python/runner.py` is only the vector **driver** — it feeds
-bytes and collects events, it does not implement the protocol.
+`reference/llp_v4.py` and `reference/llp_v4_rel.py` are byte-identical copies of
+the C library's Python reference ([`reference/VENDOR.md`](reference/VENDOR.md)
+pins their sha256). Both are deliberately literal and dependency-free, so they
+can be transliterated to a new language. `interoperability/python/runner.py` is
+only the vector **driver** — it feeds bytes and collects events, it does not
+implement the protocol.
 
 ## Repository structure
 
@@ -181,8 +182,9 @@ llp-spec/
 │   ├── channels.json  payload.json  streams.json
 │   └── MANIFEST.sha256            # pin for consumers that vendor the corpus
 ├── reference/
-│   ├── llp_v4.py                  # vendored reference implementation
-│   └── VENDOR.md                  # source, commit and sha256 pin
+│   ├── llp_v4.py                  # vendored wire reference implementation
+│   ├── llp_v4_rel.py              # vendored R1 reliable channel reference
+│   └── VENDOR.md                  # sources, source commit and sha256 pins
 ├── interoperability/python/runner.py   # vector driver
 ├── tools/
 │   ├── build_vectors.py           # generator + self-check + C fixture emitter
