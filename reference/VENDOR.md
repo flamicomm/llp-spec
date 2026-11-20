@@ -1,21 +1,25 @@
 # Vendored reference implementation
 
-`llp_v4.py` in this directory is a **byte-identical copy** of the reference
-implementation of wire format 4.0.0. It is vendored, not forked: the canonical
-copy lives in the library repository and this file must never be edited here.
+The files in this directory are **byte-identical copies** of the reference
+implementation of wire format 4.0.0 and of the R1 reliable channel profile.
+They are vendored, not forked: the canonical copies live in the library
+repository and these files must never be edited here.
+
+| File | Source | sha256 |
+|---|---|---|
+| `llp_v4.py` | `llp-protocol/scripts/llp_v4.py` | `d0fd05c99752274708515635c1dcffbe0900984ecb05f0d069142b747293e739` |
+| `llp_v4_rel.py` | `llp-protocol/scripts/llp_v4_rel.py` | `a6161a5188d668c48a009bc0b82aabdcc1cd2ff38fb79f69f4b2aeec605fd4c2` |
 
 | | |
 |---|---|
-| Source | `llp-protocol/scripts/llp_v4.py` |
-| Source commit | `cf8c35d` (tag `v4.0.0`) |
-| sha256 | `0d9c2e81d077c05aa5f5b9160ba8fb5215b05a185d9dd70802967793bb745b35` |
-| Vendored on | 2026-11-03 |
+| Source commit | `6200cac` (CNC-030 Ola 2, PR #16) |
+| Vendored on | 2026-11-20 |
 
 ## Why a copy instead of a git submodule
 
 A submodule would couple every clone of the specification repository to the
 library repository's branch, and the specification must stay usable offline.
-The copy is cheap (243 lines), and the checks below make drift detectable.
+The copies are cheap, and the checks below make drift detectable.
 
 ## Checking
 
@@ -28,22 +32,27 @@ python3 tools/check_vendor.py
 Against a local checkout of the library:
 
 ```bash
-python3 tools/check_vendor.py --against ../llp-protocol/scripts/llp_v4.py
+python3 tools/check_vendor.py \
+    --against ../llp-protocol/scripts/llp_v4.py \
+    --against ../llp-protocol/scripts/llp_v4_rel.py
 ```
 
-The scheduled `drift-watch` workflow performs the same comparison against the
-published `main` branch once a week. It reports a warning, it does not block
-pull requests: a change to the reference is a specification change and has to
-go through review here first.
+The weekly `drift-watch` workflow (`.github/workflows/drift-watch.yml`) fetches
+the published `main` branch and diffs `llp_v4.py` against it. It warns, it does
+not block pull requests: a change to the reference is a specification change and
+has to go through review here first. It does not cover `llp_v4_rel.py` yet;
+`tools/check_vendor.py` does pin that file, and the workflow should compare both
+copies when it is next touched.
 
 ## Updating
 
 1. Change the reference in the library repository and commit it there.
-2. Copy the file over this one (`cp .../scripts/llp_v4.py reference/llp_v4.py`).
-3. Recompute the hash and update the table above:
+2. Copy the files over these ones
+   (`cp .../scripts/llp_v4*.py reference/`).
+3. Recompute the hashes and update the table above:
 
    ```bash
-   sha256sum reference/llp_v4.py
+   sha256sum reference/llp_v4.py reference/llp_v4_rel.py
    ```
 
 4. Run `python3 tools/build_vectors.py` and commit the regenerated vectors in
