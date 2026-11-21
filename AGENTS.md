@@ -54,10 +54,10 @@ cites de memoria.
 - **`vectors/MANIFEST.sha256` pinea el corpus.** Todo consumidor que lo
   vendoriza (fixture C, recursos de test de Java) verifica ese manifiesto; si
   cambian los vectores, hay que re-sincronizar sus copias en el mismo hito.
-- **`reference/llp_v4.py` y `reference/llp_v4_rel.py` son vendorizados**: origen,
-  commit y sha256 están en `reference/VENDOR.md`, y `tools/check_vendor.py`
-  verifica esos pines. No se editan a mano: se actualizan desde el repo de origen
-  y se re-pinea.
+- **`reference/llp_v4.py` (wire) y `reference/llp_v4_rel.py` (R1) son
+  vendorizados**: origen, commit y sha256 de **los dos archivos** están en
+  `reference/VENDOR.md`, y `tools/check_vendor.py` verifica esos pines. No se
+  editan a mano: se actualizan desde el repo de origen y se re-pinea.
 - **La tabla de vectores del `README.md` es generada** (`--update-readme`). No
   editarla a mano.
 - **El schema versiona aparte del wire** (`schema/vector.schema.json`): un
